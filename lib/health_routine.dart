@@ -15,7 +15,7 @@ class CreateRoutine extends StatelessWidget {
           // TextField 추가
           TextField(
             decoration: InputDecoration(
-              labelText: 'Enter your routine name : ',
+              labelText: 'Enter your routine name :',
               border: OutlineInputBorder(),
             ),
           ),
