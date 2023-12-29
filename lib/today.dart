@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class Meal {
   String name;
   int grams;
@@ -8,7 +6,7 @@ class Meal {
   Meal(this.name, this.grams, this.kcal);
 }
 
-class TodayDiet extends ChangeNotifier {
+class TodayDiet{
   var kcal = 0;
   var grams = 0;
   var meals = <Meal>[];
