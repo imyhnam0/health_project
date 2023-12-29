@@ -8,7 +8,7 @@ class CreateRoutine extends StatelessWidget {
 
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
+      body: const Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
 
@@ -19,7 +19,7 @@ class CreateRoutine extends StatelessWidget {
               border: OutlineInputBorder(),
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
           TextField(
             decoration: InputDecoration(
               labelText: 'name:  ',

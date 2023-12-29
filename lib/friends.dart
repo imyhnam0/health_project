@@ -7,7 +7,7 @@ class FriendsMenu extends StatelessWidget{
   Widget build(BuildContext context) {
     return Scaffold(
       // UI의 해당 부분이 미완성임을 표시하는 위젯
-      body: Placeholder(),
+      body: const Placeholder(),
 
       // main page로 돌아가는 버튼
       // navigator 사용법은 다음 웹페이지에서 설명함
