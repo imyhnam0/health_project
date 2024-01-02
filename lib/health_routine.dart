@@ -12,7 +12,7 @@ class CreateRoutine extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
 
-          // TextField 추가
+          
           TextField(
             decoration: InputDecoration(
               labelText: 'Enter your routine name : ',
