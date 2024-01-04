@@ -11,6 +11,7 @@ class Exercise {
     required this.sets,
     required this.kg,
     required this.reps,
+
   });
 }
 
@@ -20,88 +21,98 @@ class CreateRoutine extends StatefulWidget {
   @override
   State<CreateRoutine> createState() => _CreateRoutineState();
 }
-TextEditingController nameController = TextEditingController();
-TextEditingController setsController = TextEditingController();
-TextEditingController kgController = TextEditingController();
-TextEditingController repsController = TextEditingController();
+
+
+
+
+
 
 class _CreateRoutineState extends State<CreateRoutine> {
 
+  var nameController = [TextEditingController()];
+  var setsController = [TextEditingController()];
+  var kgController = [TextEditingController()];
+  var repsController = [TextEditingController()];
+
 
   List<Exercise> exercises = [];
+  List<Widget> textFieldRows = [];
 
-  List<Widget> textFieldRows = [
-    // Initial row of text fields
-    Row(
-      children: [
-        Expanded(
-          child: Container(
-            width: 100,
-            height: 100,
-            child: TextField(
-              controller: nameController,
-              decoration: InputDecoration(
-                labelText: 'Name: ',
-                border: OutlineInputBorder(),
+  @override
+ void initState() {
+    super.initState();
+    textFieldRows.add( // Initial row of text fields
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                width: 100,
+                height: 100,
+                child: TextField(
+                  controller: nameController[0],
+                  decoration: InputDecoration(
+                    labelText: 'Name: ',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
-        Expanded(
-          child: Container(
-            width: 100,
-            height: 100,
-            child: TextField(
-              controller: setsController,
-              decoration: InputDecoration(
-                labelText: 'Sets: ',
-                border: OutlineInputBorder(),
-              ),
+            Expanded(
+              child: Container(
+                width: 100,
+                height: 100,
+                child: TextField(
+                  controller: setsController[0],
+                  decoration: InputDecoration(
+                    labelText: 'Sets: ',
+                    border: OutlineInputBorder(),
+                  ),
 
-            ),
-          ),
-        ),
-        Expanded(
-          child: Container(
-            width: 100,
-            height: 100,
-            child: TextField(
-              controller: kgController,
-              decoration: InputDecoration(
-                labelText: 'kg: ',
-                border: OutlineInputBorder(),
+                ),
               ),
             ),
-          ),
-        ),
-        Expanded(
-          child: Container(
-            width: 100,
-            height: 100,
-            child: TextField(
-              controller: repsController,
-              decoration: InputDecoration(
-                labelText: 'reps: ',
-                border: OutlineInputBorder(),
+            Expanded(
+              child: Container(
+                width: 100,
+                height: 100,
+                child: TextField(
+                  controller: kgController[0],
+                  decoration: InputDecoration(
+                    labelText: 'kg: ',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
-      ],
-    ),
-  ];
-
+            Expanded(
+              child: Container(
+                width: 100,
+                height: 100,
+                child: TextField(
+                  controller: repsController[0],
+                  decoration: InputDecoration(
+                    labelText: 'reps: ',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ));
+  }
 
   @override
 
 
   Widget build(BuildContext context) {
+
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+
 
                 TextField(
 
@@ -126,23 +137,78 @@ class _CreateRoutineState extends State<CreateRoutine> {
               style: TextStyle(fontSize: 18),
             ),
              onPressed: () {
-              Exercise exercise = Exercise(
-                name: nameController.text,
-                sets: int.parse(setsController.text),
-                kg: double.parse(kgController.text),
-                reps: int.parse(repsController.text),
-              );
-              setState(() {
-                exercises.add(exercise);
-              });
+               showDialog(
+                   context: context,
+                   barrierDismissible: true, // 바깥 영역 터치시 닫을지 여부
+                   builder: (BuildContext context) {
+                     return AlertDialog(
+                         content: const Text('정말 저장하시겠습니까?'),
+                         insetPadding: const  EdgeInsets.fromLTRB(0,80,0, 80),
+                       actions: [
+                         TextButton(
+                           child: Row(
+                             children: [
+                               Column(
+                                 children: [
+                                   Center(child: const Text('예')),
+                                 ],
+                               ),
+                             ],
+                           ),
+                           onPressed: () {
+                             Navigator.of(context).pop();
 
-              print("Stored Exercises:");
-              for (Exercise storedExercise in exercises) {
-                print("Name: ${storedExercise.name}, Sets: ${storedExercise.sets}, KG: ${storedExercise.kg}, Reps: ${storedExercise.reps}");
-              }
+                             setState(() {
+                               for(int i=0;i<nameController.length;i++)
+                               {
+                                 Exercise exercise = Exercise(
+                                   name: nameController[i].text,
+                                   sets: int.parse(setsController[i].text),
+                                   kg: double.parse(kgController[i].text),
+                                   reps: int.parse(repsController[i].text),
+                                 );
+                                 exercises.add(exercise);
+                               }
+
+                               print("inner Exercises:");
+                               for (Exercise storedExercise in exercises) {
+                                 print("Name: ${storedExercise.name}, Sets: ${storedExercise.sets}, KG: ${storedExercise.kg}, Reps: ${storedExercise.reps}");
+                               }
+
+                             });
+                             print("inner Exercises:");
+                             for (Exercise storedExercise in exercises) {
+                               print("Name: ${storedExercise.name}, Sets: ${storedExercise.sets}, KG: ${storedExercise.kg}, Reps: ${storedExercise.reps}");
+                             }
+
+
+                           },
+                         ),
+                         TextButton(
+                           child: Row(
+                             children: [
+                               Column(
+                                 children: [
+                                   Center(child: const Text('아니요')),
+                                 ],
+                               ),
+                             ],
+                           ),
+                           onPressed: () {
+                             Navigator.of(context).pop();
+                           },
+                         ),
+                       ],
+                     );
+                   }
+               );
+
+
             },
           ),
               const SizedBox(height: 30),
+
+
 
             _elevatedButton(context),
 
@@ -160,15 +226,13 @@ class _CreateRoutineState extends State<CreateRoutine> {
     );
   }
 
-
-
-
-
   Widget _elevatedButton(BuildContext context) {
-    TextEditingController newExerciseNameController = TextEditingController();
-    TextEditingController newSetsController = TextEditingController();
-    TextEditingController newKgController = TextEditingController();
-    TextEditingController newRepsController = TextEditingController();
+    nameController.add(TextEditingController());
+    kgController.add(TextEditingController());
+    repsController.add(TextEditingController());
+    setsController.add(TextEditingController());
+
+
 
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
@@ -192,7 +256,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
                     width: 100,
                     height: 100,
                     child: TextField(
-                      controller: newExerciseNameController,
+                      controller: nameController[nameController.length-1],
                       decoration: InputDecoration(
                         labelText: 'Name: ',
                         border: OutlineInputBorder(),
@@ -205,7 +269,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
                     width: 100,
                     height: 100,
                     child: TextField(
-                      controller: newSetsController,
+                      controller: setsController[setsController.length-1],
                       decoration: InputDecoration(
                         labelText: 'Sets: ',
                         border: OutlineInputBorder(),
@@ -218,7 +282,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
                     width: 100,
                     height: 100,
                     child: TextField(
-                      controller: newKgController,
+                      controller: kgController[kgController.length-1],
                       decoration: InputDecoration(
                         labelText: 'kg: ',
                         border: OutlineInputBorder(),
@@ -231,7 +295,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
                     width: 100,
                     height: 100,
                     child: TextField(
-                      controller: newRepsController,
+                      controller: repsController[repsController.length-1],
                       decoration: InputDecoration(
                         labelText: 'reps: ',
                         border: OutlineInputBorder(),
