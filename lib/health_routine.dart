@@ -19,83 +19,86 @@ class CreateRoutine extends StatefulWidget {
 
   @override
   State<CreateRoutine> createState() => _CreateRoutineState();
-}
-TextEditingController nameController = TextEditingController();
-TextEditingController setsController = TextEditingController();
-TextEditingController kgController = TextEditingController();
-TextEditingController repsController = TextEditingController();
+} 
 
 class _CreateRoutineState extends State<CreateRoutine> {
-
+  TextEditingController nameController = TextEditingController();
+  TextEditingController setsController = TextEditingController();
+  TextEditingController kgController = TextEditingController();
+  TextEditingController repsController = TextEditingController();
 
   List<Exercise> exercises = [];
 
-  List<Widget> textFieldRows = [
-    // Initial row of text fields
-    Row(
-      children: [
-        Expanded(
-          child: Container(
-            width: 100,
-            height: 100,
-            child: TextField(
-              controller: nameController,
-              decoration: InputDecoration(
-                labelText: 'Name: ',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ),
-        ),
-        Expanded(
-          child: Container(
-            width: 100,
-            height: 100,
-            child: TextField(
-              controller: setsController,
-              decoration: InputDecoration(
-                labelText: 'Sets: ',
-                border: OutlineInputBorder(),
-              ),
-
-            ),
-          ),
-        ),
-        Expanded(
-          child: Container(
-            width: 100,
-            height: 100,
-            child: TextField(
-              controller: kgController,
-              decoration: InputDecoration(
-                labelText: 'kg: ',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ),
-        ),
-        Expanded(
-          child: Container(
-            width: 100,
-            height: 100,
-            child: TextField(
-              controller: repsController,
-              decoration: InputDecoration(
-                labelText: 'reps: ',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ),
-        ),
-      ],
-    ),
-  ];
-
+  List<Widget> textFieldRows = [];
 
   @override
+  void initState() {
+    super.initState();
+    textFieldRows.add(
+      // Initial row of text fields
+      Row(
+        children: [
+          Expanded(
+            child: Container(
+              width: 100,
+              height: 100,
+              child: TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: 'Name: ',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Container(
+              width: 100,
+              height: 100,
+              child: TextField(
+                controller: setsController,
+                decoration: InputDecoration(
+                  labelText: 'Sets: ',
+                  border: OutlineInputBorder(),
+                ),
 
+              ),
+            ),
+          ),
+          Expanded(
+            child: Container(
+              width: 100,
+              height: 100,
+              child: TextField(
+                controller: kgController,
+                decoration: InputDecoration(
+                  labelText: 'kg: ',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Container(
+              width: 100,
+              height: 100,
+              child: TextField(
+                controller: repsController,
+                decoration: InputDecoration(
+                  labelText: 'reps: ',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
+  @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -104,7 +107,6 @@ class _CreateRoutineState extends State<CreateRoutine> {
             children: [
 
                 TextField(
-
                   decoration: InputDecoration(
                     labelText: 'Name: ',
                     border: OutlineInputBorder(),
