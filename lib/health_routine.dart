@@ -22,11 +22,6 @@ class CreateRoutine extends StatefulWidget {
   State<CreateRoutine> createState() => _CreateRoutineState();
 }
 
-
-
-
-
-
 class _CreateRoutineState extends State<CreateRoutine> {
 
   var nameController = [TextEditingController()];
@@ -40,6 +35,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
 
   @override
  void initState() {
+
     super.initState();
     textFieldRows.add( // Initial row of text fields
         Row(
@@ -168,6 +164,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
                                    reps: int.parse(repsController[i].text),
                                  );
                                  exercises.add(exercise);
+
                                }
 
                                print("inner Exercises:");
@@ -176,10 +173,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
                                }
 
                              });
-                             print("inner Exercises:");
-                             for (Exercise storedExercise in exercises) {
-                               print("Name: ${storedExercise.name}, Sets: ${storedExercise.sets}, KG: ${storedExercise.kg}, Reps: ${storedExercise.reps}");
-                             }
+
 
 
                            },
@@ -227,10 +221,8 @@ class _CreateRoutineState extends State<CreateRoutine> {
   }
 
   Widget _elevatedButton(BuildContext context) {
-    nameController.add(TextEditingController());
-    kgController.add(TextEditingController());
-    repsController.add(TextEditingController());
-    setsController.add(TextEditingController());
+
+
 
 
 
@@ -248,6 +240,12 @@ class _CreateRoutineState extends State<CreateRoutine> {
       onPressed: () {
         // Add a new row of text fields when the '+' button is pressed
         setState(() {
+
+          nameController.add(TextEditingController());
+          kgController.add(TextEditingController());
+          repsController.add(TextEditingController());
+          setsController.add(TextEditingController());
+
           textFieldRows.add(
             Row(
               children: [
@@ -316,8 +314,9 @@ class _CreateRoutineState extends State<CreateRoutine> {
   }
 }
 
-class Favorite extends StatelessWidget{
-  const Favorite({super.key});
+class Favorite extends StatelessWidget{// 추가된 부분
+  const Favorite({super.key});// 생성자 수정
+
 
   @override
   Widget build(BuildContext context) {
@@ -386,7 +385,8 @@ class HealthRoutineMenu extends StatelessWidget{
                 onPressed: (){
                   Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const Favorite()),
+                      MaterialPageRoute(builder: (context) => const Favorite(),
+                      )
                   );
                 }
 
