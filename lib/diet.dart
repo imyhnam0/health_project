@@ -316,7 +316,10 @@ class _HistoryState extends State<History> {
                       onPressed: () {
                         setState(() {
                           for(int i = _selected.length-1; i >= 0 ; i--) {
-                            if(_selected[i]) _selectedDiet.meals.removeAt(i);
+                            if(_selected[i]) {
+                              if(widget.dateRange != null)widget.diet.delFood(_selectedDiet.meals[i]);
+                              _selectedDiet.delFoodByIndex(i);
+                            }
                           }
                           setSelection(false, _selectedDiet);
                         });

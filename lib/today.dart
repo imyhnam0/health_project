@@ -7,6 +7,13 @@ class Meal {
   DateTime time;
 
   Meal(this.name, this.grams, this.kcal, {DateTime? date}) : time = date ?? DateTime.now();
+
+  bool operator ==(Object other) {
+    if(other is Meal) {
+      return name == other.name && grams == other.grams && kcal == other.kcal;
+    }
+    return this == other;
+  }
 }
 
 class Diet{
@@ -37,9 +44,14 @@ class Diet{
     grams += food.grams;
     kcal += food.kcal;
   }
-  void delFood(int num){
+  void delFoodByIndex(int num){
     grams -= meals[num].grams;
     kcal -= meals[num].kcal;
     meals.removeAt(num);
+  }
+  void delFood(Meal meal){
+    grams -= meal.grams;
+    kcal -= meal.kcal;
+    meals.remove(meal);
   }
 }
