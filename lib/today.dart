@@ -1,19 +1,16 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
-class Meal {
-  String name;
-  int grams;
-  int kcal;
-  DateTime time;
+class Meal extends Equatable{
+  final String name;
+  final int grams;
+  final int kcal;
+  final DateTime time;
 
   Meal(this.name, this.grams, this.kcal, {DateTime? date}) : time = date ?? DateTime.now();
 
-  bool operator ==(Object other) {
-    if(other is Meal) {
-      return name == other.name && grams == other.grams && kcal == other.kcal;
-    }
-    return this == other;
-  }
+  @override
+  List<Object> get props => [name, grams, kcal, time];
 }
 
 class Diet{
