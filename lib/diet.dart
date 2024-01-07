@@ -1,3 +1,5 @@
+import 'dart:html';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_project/today.dart';
@@ -245,8 +247,6 @@ class _TodayMenuState extends State<TodayMenu> {
   }
 }
 
-// 다음 페이지의 sample code에 따라 수정할 것
-//https://api.flutter.dev/flutter/widgets/ListView-class.html
 class History extends StatefulWidget {
   final Diet diet;
   final DateTimeRange? dateRange;
@@ -325,81 +325,78 @@ class _HistoryState extends State<History> {
                         });
                       },
                     ),
-                    Checkbox(
-                      value: totalCheck, 
-                      tristate: true,
-                      onChanged: (value) {
-                        setState(() {
-                          totalCheck = value ?? false;
-                          setSelection(value ?? false, _selectedDiet);
-                        });
-                      }
-                    ),
-                    const SizedBox(width: 24,)
-                  ] 
-                  : [const SizedBox.shrink()],
+                  ]
+                  : [], 
       ),
       
-      body: ListView.builder(
-        itemCount: _selectedDiet.meals.length,
-        itemBuilder:(context, index) => ListTile(
-          onTap: () {
-            if(isSelectionMode) {_toggle(index);}
-          },
-          onLongPress: () {
-            if (!isSelectionMode) {
-              setState(() {
-                isSelectionMode = true;
-                _selected[index] = true;
-              });
-            }
-          },
-          title: Container(
-            height: 50,
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.all(Radius.circular(5)),
-              color: Theme.of(context).colorScheme.inversePrimary,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Spacer(),
-                Text(_selectedDiet.meals[index].name),
-                Spacer(),
-                Text(_selectedDiet.meals[index].grams.toString()),
-                Spacer(),
-                Text(_selectedDiet.meals[index].kcal.toString()),
-                Spacer(),
+      body: isSelectionMode
+            ? DataTable(
+              columns: const <DataColumn>[
+                DataColumn(label: Text('name')),
+                DataColumn(label: Text('grams')),
+                DataColumn(label: Text('kcal')),
               ],
-            ),
-          ),
-          trailing: isSelectionMode
-                  ? Checkbox(
-                      value: _selected[index],
-                      onChanged: (bool? x) {_toggle(index);},
-                    )
-                  : ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(0),
+              rows: List<DataRow>.generate(
+                _selected.length,
+                (int index) => DataRow(
+                  cells: <DataCell>[
+                    DataCell(Text(_selectedDiet.meals[index].name)),
+                    DataCell(Text(_selectedDiet.meals[index].grams.toString())),
+                    DataCell(Text(_selectedDiet.meals[index].kcal.toString())),
+                  ],
+                  selected: _selected[index],
+                  onSelectChanged: (bool? x) {_toggle(index);},
+                ),
+              )
+            )
+            : DataTable(
+              columns: const <DataColumn>[
+                DataColumn(label: Text('add')),
+                DataColumn(label: Text('name')),
+                DataColumn(label: Text('grams')),
+                DataColumn(label: Text('kcal')),
+              ],
+              rows: List<DataRow>.generate(
+                _selected.length,
+                (int index) => DataRow(
+                  onLongPress: () {
+                    if (!isSelectionMode) {
+                      setState(() {
+                        isSelectionMode = true;
+                        _selected[index] = true;
+                      });
+                    }
+                  }, 
+                  cells: <DataCell>[
+                    DataCell(TextButton(
+                      style: TextButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(0),
+                        ),
+                        padding: EdgeInsets.zero
                       ),
-                    ),
-                    child: const Icon(Icons.add),
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context, 
-                        MaterialPageRoute(builder: (context) => TodayMenu(
-                          diet : _selectedDiet,
-                          name : _selectedDiet.meals[index].name,
-                          gram : _selectedDiet.meals[index].grams,
-                          kcal : _selectedDiet.meals[index].kcal
-                        ))
-                      );
-                    },
-                  ),
-        ),
-      ),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context, 
+                          MaterialPageRoute(builder: (context) => TodayMenu(
+                            diet : _selectedDiet,
+                            name : _selectedDiet.meals[index].name,
+                            gram : _selectedDiet.meals[index].grams,
+                            kcal : _selectedDiet.meals[index].kcal
+                          ))
+                        );
+                      },
+                      child: const Icon(Icons.add),
+                    )),
+                    DataCell(Text(_selectedDiet.meals[index].name)),
+                    DataCell(Text(_selectedDiet.meals[index].grams.toString())),
+                    DataCell(Text(_selectedDiet.meals[index].kcal.toString())),
+                  ]
+                ),
+              )
+            ),
+      
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pop(context);
