@@ -1,8 +1,7 @@
-import 'dart:html';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_project/today.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 class DietMenu extends StatefulWidget{
   const DietMenu({super.key});
@@ -12,37 +11,37 @@ class DietMenu extends StatefulWidget{
 }
 
 class _DietMenuState extends State<DietMenu> {
-  Diet diet = Diet();
+  final todayDiet = OneDayFoods();
+  final bookmarks = BookmarkedFoods();
+  final mealHistory = MealCollection();
 
   @override
   void initState() {
     super.initState();
-    _initiate();
-  }
 
-  Future<void> _initiate() async {
-    //dietHistory = Diet.json(jsonDecode(await file.readAsString()));
+    // hard coding for test
+    todayDiet.addFood(Food('first', 100, 4));
+    todayDiet.addFood(Food('second', 130, 20));
+    bookmarks.addFood(Food('first', 100, 4));
+    bookmarks.addFood(Food('second', 130, 20));
+    mealHistory.add(OneDayFoods(name: 'first', foods: [Food('first', 100, 4)], date: DateTime(2024, 1, 5)));
+    mealHistory.add(OneDayFoods(name: 'second', foods: [Food('second', 130, 20)], date: DateTime(2024, 1, 4)));
+    
+    mealHistory.add(todayDiet);
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('diet'),
-        leading: BackButton(
-                  onPressed: () {
-                    setState(() {
-                      Navigator.pop(context);
-                    });
-                  },
-                )
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            // 오늘의 식단
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
@@ -50,11 +49,32 @@ class _DietMenuState extends State<DietMenu> {
                 ),
                 fixedSize: const Size(300, 100),
               ),
-              child: const Text('오늘 식단', style: TextStyle(fontSize: 18)),
+              child: const Text('오늘의 식단',
+                style: TextStyle(fontSize: 18),
+              ),
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => TodayMenu(diet: diet))
+                  MaterialPageRoute(builder: (context) => TodayDietWidget(todayDiet: todayDiet, bookmarks: bookmarks,)),
+                );
+              },
+            ),
+            const SizedBox(height: 80),
+            // 즐겨찾기
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(0),
+                ),
+                fixedSize: const Size(300, 100),
+              ),
+              child: const Text('즐겨찾기',
+                style: TextStyle(fontSize: 18),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => BookmarkWidget(todayDiet: todayDiet, bookmarks: bookmarks,)),
                 );
               },
             ),
@@ -66,30 +86,16 @@ class _DietMenuState extends State<DietMenu> {
                 ),
                 fixedSize: const Size(300, 100),
               ),
-              child: const Text('즐겨찾기', style: TextStyle(fontSize: 18)),
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => History(diet: diet))
-                  );
-              },
-            ),
-            const SizedBox(height: 80),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(0),
-                ),
-                fixedSize: const Size(300, 100),
+              child: const Text('달력',
+                style: TextStyle(fontSize: 18),
               ),
-              child: const Text('달력', style: TextStyle(fontSize: 18)),
               onPressed: () {
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Calandar(diet: diet))
-                  );
+                  context,
+                  MaterialPageRoute(builder: (context) => CalendarWidget(mealHistory: mealHistory, todayDiet: todayDiet,)),
+                );
               },
-            ),
+            )
           ],
         ),
       ),
@@ -97,208 +103,323 @@ class _DietMenuState extends State<DietMenu> {
   }
 }
 
-class TodayMenu extends StatefulWidget {
-  final Diet diet;
-  final String? name;
-  final int? gram, kcal;
-  const TodayMenu({super.key, required this.diet, this.name, this.gram, this.kcal});
+class TodayDietWidget extends StatefulWidget{
+  const TodayDietWidget({super.key, required this.todayDiet, required this.bookmarks});
+  final OneDayFoods todayDiet;
+  final BookmarkedFoods bookmarks;
 
   @override
-  State<TodayMenu> createState() => _TodayMenuState();
+  State<TodayDietWidget> createState() => _TodayDietWidgetState();
 }
 
-class _TodayMenuState extends State<TodayMenu> {
-  _TodayMenuState();
+class _TodayDietWidgetState extends State<TodayDietWidget> {
+  final _todayName = TextEditingController();
+  final List<TextEditingController> _nameCtrl = [];
+  final List<TextEditingController> _gramCtrl = [];
+  final List<TextEditingController> _kcalCtrl = [];
+  List<Widget> textFieldRows = [];
 
-  final nameCtrl = TextEditingController();
-  final gramCtrl = TextEditingController();
-  final kcalCtrl = TextEditingController();
-  
   @override
   void initState() {
     super.initState();
-    nameCtrl.text = widget.name ?? '';
-    gramCtrl.text = widget.gram?.toString() ?? '';
-    kcalCtrl.text = widget.kcal?.toString() ?? '';
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    nameCtrl.dispose();
-    gramCtrl.dispose();
-    kcalCtrl.dispose();
+    _todayName.text = widget.todayDiet.name;
+    for(int index = 0; index < widget.todayDiet.foods.length; index++) {
+      _nameCtrl.add(TextEditingController(text: widget.todayDiet.foods[index].name));
+      _gramCtrl.add(TextEditingController(text: widget.todayDiet.foods[index].grams.toString()));
+      _kcalCtrl.add(TextEditingController(text: widget.todayDiet.foods[index].kcal.toString()));
+      textFieldRows.add(
+        Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                width: 100,
+                height: 100,
+                child: TextField(
+                  controller: _nameCtrl.last,
+                  decoration: const InputDecoration(
+                    labelText: 'Food Name: ',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: SizedBox(
+                width: 100,
+                height: 100,
+                child: TextField(
+                  controller: _gramCtrl.last,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: const InputDecoration(
+                    labelText: 'Grams: ',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: SizedBox(
+                width: 100,
+                height: 100,
+                child: TextField(
+                  controller: _kcalCtrl.last,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: const InputDecoration(
+                    labelText: 'Kcal: ',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 50,
+              height: 100,
+              child: Column(
+                children: [
+                  IconButton(
+                    style: IconButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(0),
+                      ),
+                    ),
+                    onPressed: () {
+                    },
+                    icon: const Icon(Icons.delete)
+                  ),
+                  IconButton(
+                    style: IconButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(0),
+                      ),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        if (_nameCtrl[index].text == '') {
+                          const AlertDialog(actions: [Text('please enter a name')],);
+                          return;
+                        }
+                        widget.bookmarks.addFood(
+                          Food(_nameCtrl[index].text, 
+                          int.parse(_gramCtrl[index].text == '' ? '0' : _gramCtrl[index].text), 
+                          int.parse(_kcalCtrl[index].text == '' ? '0' : _kcalCtrl[index].text)
+                        ));
+                      });
+                    },
+                    icon: const Icon(Icons.bookmark)
+                  ),
+                  const Spacer(),
+                ],
+              ),
+            )
+          ],
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    var diet = widget.diet;
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Today Diet'),
-        leading: BackButton(onPressed: () {Navigator.pop(context);},)
+        title: const Text('오늘의 식단'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text('Enter Name')
-            ),
-            TextField(
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-              ),
-              controller: nameCtrl,
-            ),
-            const SizedBox(height: 5),
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text('Enter Gram')
-            ),
-            TextField(
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: '0',
-              ),
-              controller: gramCtrl,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            ),
-            const SizedBox(height: 5),
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text('Enter Kcal')
-            ),
-            TextField(
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: '0',
-              ),
-              controller: kcalCtrl,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                if(nameCtrl.text.isEmpty) {
-                  showDialog(
-                    context: context, 
-                    builder: (context) => AlertDialog(
-                      content: const Text('name must be not empty'),
-                      actions: <Widget>[
-                        TextButton( 
-                          child: const Text('Cancel'),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
+      body: ListView(
+        children: <Widget>[
+          const SizedBox(height: 50),
+          Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  width: 100,
+                  height: 100,
+                  child: TextField(
+                    controller: _todayName,
+                    decoration: const InputDecoration(
+                      labelText: '식단 이름: ',
+                      border: OutlineInputBorder(),
                     ),
-                  );
-                  return;
-                }
-                if (gramCtrl.text.isEmpty || kcalCtrl.text.isEmpty) {
-                  bool result = await showDialog(
-                    context: context, 
-                    builder: (context) {
-                      return AlertDialog(
-                        content: const Text('If gram or kcal is 0, it will be saved as 0.\nDo you wish to save as such?'),
-                        actions: <Widget>[
-                          TextButton(
-                            child: const Text('Cancel'),
-                            onPressed: () => Navigator.pop(context, false),
-                          ),
-                          TextButton(
-                            child: const Text('OK'),
-                            onPressed: () => Navigator.pop(context, true),
-                          )
-                        ],
+                  ),
+                ),
+              )
+            ],
+          ),
+          Column(
+            children: textFieldRows,
+          ),
+          Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  style: IconButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(0),
+                    ),
+                    fixedSize: const Size(60, 60),
+                  ),
+                  icon: const Icon(Icons.add),
+                  onPressed: () {
+                    setState(() {
+                      _nameCtrl.add(TextEditingController());
+                      _gramCtrl.add(TextEditingController());
+                      _kcalCtrl.add(TextEditingController());
+                      textFieldRows.add(
+                        Row(
+                          children: [
+                            Expanded(
+                              child: SizedBox(
+                                width: 100,
+                                height: 100,
+                                child: TextField(
+                                  controller: _nameCtrl.last,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Food Name: ',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: SizedBox(
+                                width: 100,
+                                height: 100,
+                                child: TextField(
+                                  controller: _gramCtrl.last,
+                                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                  decoration: const InputDecoration(
+                                    labelText: 'Grams: ',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: SizedBox(
+                                width: 100,
+                                height: 100,
+                                child: TextField(
+                                  controller: _kcalCtrl.last,
+                                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                  decoration: const InputDecoration(
+                                    labelText: 'Kcal: ',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(0),
+                                ),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  if (_nameCtrl.last.text == '') {
+                                    const AlertDialog(actions: [Text('please enter a name')],);
+                                    return;
+                                  }
+                                  widget.bookmarks.addFood(
+                                    Food(_nameCtrl.last.text, 
+                                    int.parse(_gramCtrl.last.text == '' ? '0' : _gramCtrl.last.text), 
+                                    int.parse(_kcalCtrl.last.text == '' ? '0' : _kcalCtrl.last.text)
+                                  ));
+                                });
+                              },
+                              icon: const Icon(Icons.bookmark)
+                            )
+                          ],
+                        ),
                       );
-                    },
-                  ) ?? false;
-                  if(!result) return;
-                }
-                diet.addInfo(
-                  Meal(
-                    nameCtrl.text, 
-                    int.parse(gramCtrl.text.isEmpty ? '0' : gramCtrl.text), 
-                    int.parse(kcalCtrl.text.isEmpty ? '0' : kcalCtrl.text)
-                  )
-                );
-              },
-              child: const Icon(Icons.add),
+                    });
+                  },
+                ),
+                IconButton(
+                  style: IconButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(0),
+                    ),
+                    fixedSize: const Size(60, 60),
+                  ),
+                  icon: const Icon(Icons.save),
+                  onPressed: () {
+                    setState(() {
+                      widget.todayDiet.name = _todayName.text;
+                      widget.todayDiet.foods = [];
+                      for(int i = 0; i < _nameCtrl.length; i++) {
+                        if (_nameCtrl[i].text == '') {
+                          continue;
+                        }
+                        widget.todayDiet.addFood(
+                          Food(_nameCtrl[i].text, 
+                          int.parse(_gramCtrl[i].text == '' ? '0' : _gramCtrl[i].text), 
+                          int.parse(_kcalCtrl[i].text == '' ? '0' : _kcalCtrl[i].text)
+                        ));
+                      }
+                    });
+                  },
+                )
+              ],
             ),
-          ],
-        )
+          ),
+          const Center(
+            child: Column(
+              children: [
+                Text('note: 이름이 빈칸으로 된 식단은 저장되지 않습니다.'),
+                Text('gram, Kcal를 비워두면 0으로 저장됩니다.'),
+              ],
+            )
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pop(context);
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => History(diet: diet))
+            MaterialPageRoute(builder: (context) => BookmarkWidget(todayDiet: widget.todayDiet, bookmarks: widget.bookmarks,))
           );
         },
-        tooltip: 'Home menu',
+        tooltip: '즐겨찾기',
         child: const Icon(Icons.bookmark),
       ),
     );
   }
 }
 
-class History extends StatefulWidget {
-  final Diet diet;
-  final DateTimeRange? dateRange;
-
-  const History({super.key, required this.diet, this.dateRange});
+class BookmarkWidget extends StatefulWidget{
+  final BookmarkedFoods bookmarks;
+  final OneDayFoods todayDiet;
+  const BookmarkWidget({super.key, required this.todayDiet, required this.bookmarks});
 
   @override
-  State<History> createState() => _HistoryState();
+  State<BookmarkWidget> createState() => _BookmarksState();
 }
 
-class _HistoryState extends State<History> {
-  bool isSelectionMode = false;
-  bool? totalCheck;
-  late List<bool> _selected;
-  late Diet _selectedDiet;
-
-  _HistoryState();
+class _BookmarksState extends State<BookmarkWidget> {
+  bool _isEditing = false;
+  late List<bool> _isSelected;
 
   @override
   void initState() {
     super.initState();
-    _selectedDiet = widget.dateRange == null ? widget.diet : widget.diet.dietOnDateRange(widget.dateRange!);
-    setSelection(false, _selectedDiet);
-  }
-
-  void setSelection(bool selected, Diet diet) {
-    _selected = List<bool>.generate(diet.meals.length, (_) => selected);
-  }
-
-  void _toggle(int index) {
-    setState(() {
-      _selected[index] = !_selected[index];
-    });
+    _isSelected = List.filled(widget.bookmarks.foods.length, false);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_selected.isNotEmpty) totalCheck = null;
-    for (var element in _selected) {
-      if(element != totalCheck) totalCheck = totalCheck == null ? element : null;
-    }
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('history'),
-        leading: isSelectionMode
+        title: const Text('즐겨찾기'),
+        leading: _isEditing
                 ? IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () {
                       setState(() {
-                        isSelectionMode = false;
-                        setSelection(false, _selectedDiet);
+                        _isEditing = false;
+                        _isSelected = List.filled(widget.bookmarks.foods.length, false);
                       });
                     },
                   )
@@ -309,173 +430,195 @@ class _HistoryState extends State<History> {
                     });
                   },
                 ),
-        actions: isSelectionMode
-                  ? [
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () {
-                        setState(() {
-                          for(int i = _selected.length-1; i >= 0 ; i--) {
-                            if(_selected[i]) {
-                              if(widget.dateRange != null)widget.diet.delFood(_selectedDiet.meals[i]);
-                              _selectedDiet.delFoodByIndex(i);
-                            }
-                          }
-                          setSelection(false, _selectedDiet);
-                        });
-                      },
-                    ),
-                  ]
-                  : [], 
+        actions: _isEditing ? [
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () {
+              setState(() {
+                for (var index = widget.bookmarks.foods.length-1; index >= 0; index--) {
+                  if (_isSelected[index]) {
+                    widget.bookmarks.delFoodByIndex(index);
+                  }
+                }
+                _isEditing = false;
+                _isSelected = List.filled(widget.bookmarks.foods.length, false);
+              });
+            },
+          ),
+        ] : [],
       ),
-      
-      body: isSelectionMode
+      body: _isEditing 
             ? DataTable(
-              columns: const <DataColumn>[
-                DataColumn(label: Text('name')),
-                DataColumn(label: Text('grams')),
-                DataColumn(label: Text('kcal')),
+              columns: const [
+                DataColumn(label: Text('음식 이름')),
+                DataColumn(label: Text('Kcal')),
+                DataColumn(label: Text('Grams')),
               ],
-              rows: List<DataRow>.generate(
-                _selected.length,
-                (int index) => DataRow(
-                  cells: <DataCell>[
-                    DataCell(Text(_selectedDiet.meals[index].name)),
-                    DataCell(Text(_selectedDiet.meals[index].grams.toString())),
-                    DataCell(Text(_selectedDiet.meals[index].kcal.toString())),
-                  ],
-                  selected: _selected[index],
-                  onSelectChanged: (bool? x) {_toggle(index);},
-                ),
-              )
+              rows: [
+                for (var index = 0; index < widget.bookmarks.foods.length; index++)
+                  DataRow(
+                    selected: _isSelected[index],
+                    onSelectChanged: (bool? isSelected) {
+                      setState(() {
+                        _isSelected[index] = isSelected!;
+                      });
+                    },
+                    cells: [
+                      DataCell(
+                        Text(widget.bookmarks.foods[index].name),
+                      ),
+                      DataCell(
+                        Text(widget.bookmarks.foods[index].kcal.toString()),
+                      ),
+                      DataCell(
+                        Text(widget.bookmarks.foods[index].grams.toString()),
+                      ),
+                    ],
+                  ),
+              ],
             )
             : DataTable(
-              columns: const <DataColumn>[
-                DataColumn(label: Text('add')),
-                DataColumn(label: Text('name')),
-                DataColumn(label: Text('grams')),
-                DataColumn(label: Text('kcal')),
+              columns: const [
+                DataColumn(label: Text('음식 이름')),
+                DataColumn(label: Text('Kcal')),
+                DataColumn(label: Text('Grams')),
+                DataColumn(label: Text('오늘의 식단에 추가')),
               ],
-              rows: List<DataRow>.generate(
-                _selected.length,
-                (int index) => DataRow(
-                  onLongPress: () {
-                    if (!isSelectionMode) {
+              rows: [
+                for (var index = 0; index < widget.bookmarks.foods.length; index++)
+                  DataRow(
+                    onLongPress: () {
                       setState(() {
-                        isSelectionMode = true;
-                        _selected[index] = true;
+                        _isEditing = true;
+                        _isSelected[index] = true;
                       });
-                    }
-                  }, 
-                  cells: <DataCell>[
-                    DataCell(TextButton(
-                      style: TextButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(0),
-                        ),
-                        padding: EdgeInsets.zero
+                    },
+                    cells: [
+                      DataCell(
+                        Text(widget.bookmarks.foods[index].name),
                       ),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context, 
-                          MaterialPageRoute(builder: (context) => TodayMenu(
-                            diet : _selectedDiet,
-                            name : _selectedDiet.meals[index].name,
-                            gram : _selectedDiet.meals[index].grams,
-                            kcal : _selectedDiet.meals[index].kcal
-                          ))
-                        );
-                      },
-                      child: const Icon(Icons.add),
-                    )),
-                    DataCell(Text(_selectedDiet.meals[index].name)),
-                    DataCell(Text(_selectedDiet.meals[index].grams.toString())),
-                    DataCell(Text(_selectedDiet.meals[index].kcal.toString())),
-                  ]
-                ),
-              )
+                      DataCell(
+                        Text(widget.bookmarks.foods[index].kcal.toString()),
+                      ),
+                      DataCell(
+                        Text(widget.bookmarks.foods[index].grams.toString()),
+                      ),
+                      DataCell(
+                        IconButton(
+                          style: IconButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(0),
+                            ),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              widget.todayDiet.addFood(widget.bookmarks.foods[index]);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('추가되었습니다.')),
+                              );
+                            });
+                          },
+                          icon: const Icon(Icons.add),
+                        ),
+                      )
+                    ],
+                  ),
+              ],
             ),
-      
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pop(context);
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => Calandar(diet: _selectedDiet))
+            MaterialPageRoute(builder: (context) => TodayDietWidget(todayDiet: widget.todayDiet, bookmarks: widget.bookmarks,))
           );
         },
-        tooltip: 'Home menu',
-        child: const Icon(Icons.calendar_month_outlined),
+        tooltip: '오늘의 식단',
+        child: const Icon(Icons.food_bank),
       ),
     );
   }
 }
 
-class Calandar extends StatefulWidget {
-  final Diet diet;
-
-  const Calandar({super.key, required this.diet});
+class CalendarWidget extends StatefulWidget{
+  final MealCollection mealHistory;
+  final OneDayFoods todayDiet;
+  const CalendarWidget({super.key, required this.mealHistory, required this.todayDiet});
 
   @override
-  State<Calandar> createState() => _CalandarState();
+  State<CalendarWidget> createState() => _CalendarWidgetState();
 }
 
-class _CalandarState extends State<Calandar> {
-  DateTimeRange _selectedDateRange = DateTimeRange(
-    start: DateTime.now(), 
-    end: DateTime.now()
-  );
+class Event {
+  String title;
 
-  String showDate(DateTimeRange dateRange) {
-    return '${dateRange.start.year}.${dateRange.start.month}.${dateRange.start.day} ~ '
-      '${dateRange.end.year}.${dateRange.end.month}.${dateRange.end.day}'
-    ;
-  }
+  Event(this.title);
+}
+
+class _CalendarWidgetState extends State<CalendarWidget> {
+  DateTime _focusedDay = DateTime.now();
+  DateTime _selectedDay = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
+    OneDayFoods? mealOnSelectedDay = widget.mealHistory.get(_selectedDay);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Calandar'),
+        title: const Text('달력'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Selected date range is : ${showDate(_selectedDateRange)}', style: const TextStyle(fontSize: 18)),
-            ElevatedButton(
-              onPressed: () async {
-                _selectedDateRange = await showDateRangePicker(
-                  context: context,
-                  currentDate: DateTime.now(),
-                  firstDate: DateTime(2021), 
-                  lastDate: DateTime.now()
-                ) ?? _selectedDateRange;
-                setState(() {});
-              },
-              child: const Text('choose'),
+      body: ListView(
+        children: [
+          TableCalendar(
+            firstDay: DateTime.utc(2023, 1, 1),
+            lastDay: DateTime.now(),
+            focusedDay: _focusedDay,
+            onDaySelected: (selectedDay, focusedDay) {
+              setState(() {
+                _selectedDay = selectedDay;
+                _focusedDay = focusedDay;
+              });
+            },
+            selectedDayPredicate: (day) {
+              return isSameDay(_selectedDay, day);
+            },
+            eventLoader: (day) {
+              final mealForSelectedDay = widget.mealHistory.get(day);
+              return mealForSelectedDay == null ? [] : [mealForSelectedDay.name];
+            },
+          ),
+          const Divider(),
+          ListTile(
+            title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('선택된 날짜: ${_selectedDay.toString().substring(0, 10)}'),
+                  mealOnSelectedDay != null 
+                  ? Text('${mealOnSelectedDay.grams.toString()}g, ${mealOnSelectedDay.kcal.toString()}kcal') 
+                  : const SizedBox.shrink(),
+                ],
+              )
             ),
-            const SizedBox(height: 80),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(0),
-                ),
-                fixedSize: const Size(300, 100),
-              ),
-              child: const Text('show diet in range', style: TextStyle(fontSize: 18)),
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => History(diet: widget.diet, dateRange: _selectedDateRange,))
-                  );
-              },
-            ),
-          ]
-        ),
+          mealOnSelectedDay != null ?
+            Wrap(
+              alignment: WrapAlignment.start,
+              children: [
+                for (var meal in mealOnSelectedDay.foods)
+                  SizedBox(
+                    width: 200,
+                    child: ListTile(
+                      leading: IconButton(icon: const Icon(Icons.add), onPressed: () {
+                        setState(() {
+                          widget.todayDiet.addFood(meal);
+                        });
+                      }),
+                      title: Text(meal.name),
+                      subtitle: Text('${meal.grams.toString()}g, ${meal.kcal.toString()}kcal'),
+                    ),
+                  ),
+              ],
+            ) : const SizedBox.shrink()
+        ],
       ),
     );
   }
