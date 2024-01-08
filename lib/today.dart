@@ -19,12 +19,16 @@ class Food extends Equatable{
 }
 
 class FoodCollection{
-  late int kcal;
-  late int grams;
+  int kcal = 0;
+  int grams = 0;
   late List<Food> foods;
 
-  FoodCollection({this.kcal = 0, this.grams = 0, List<Food>? foods}) {
+  FoodCollection({List<Food>? foods}) {
     this.foods = foods ?? <Food>[];
+    for (Food m in this.foods) {
+      kcal += m.kcal;
+      grams += m.grams;
+    }
   }
   
   FoodCollection dietOnDateRange(DateTimeRange dateRange) {
@@ -59,14 +63,14 @@ class FoodCollection{
 }
 
 class BookmarkedFoods extends FoodCollection{
-  BookmarkedFoods({int kcal = 0, int grams = 0, List<Food>? foods}) : super(kcal: kcal, grams: grams, foods: foods);
+  BookmarkedFoods({List<Food>? foods}) : super(foods: foods);
 }
 
 class OneDayFoods extends FoodCollection{
   late String name;
   late DateTime date;
 
-  OneDayFoods({String? name, int kcal = 0, int grams = 0, List<Food>? foods, DateTime? date}) : super(kcal: kcal, grams: grams, foods: foods){
+  OneDayFoods({String? name, List<Food>? foods, DateTime? date}) : super(foods: foods){
     this.name = name ?? DateFormat('yyyy-MM-dd').format(DateTime.now());
     this.date = DateTime(
       date?.year ?? DateTime.now().year,
@@ -90,6 +94,15 @@ class MealCollection{
       }
     }
     return null;
+  }
+  List<OneDayFoods> getAll(DateTime date){
+    List<OneDayFoods> result = [];
+    for (OneDayFoods m in meals) {;
+      if(m.date.year == date.year && m.date.month == date.month && m.date.day == date.day){
+        result.add(m);
+      }
+    }
+    return result;
   }
   void add(OneDayFoods meal){
     meals.add(meal);

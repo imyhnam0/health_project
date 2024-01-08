@@ -11,7 +11,7 @@ class DietMenu extends StatefulWidget{
 }
 
 class _DietMenuState extends State<DietMenu> {
-  final todayDiet = OneDayFoods();
+  var todayDiet = OneDayFoods();
   final bookmarks = BookmarkedFoods();
   final mealHistory = MealCollection();
 
@@ -22,6 +22,7 @@ class _DietMenuState extends State<DietMenu> {
     // hard coding for test
     todayDiet.addFood(Food('first', 100, 4));
     todayDiet.addFood(Food('second', 130, 20));
+    todayDiet.addFood(Food('third', 130, 20));
     bookmarks.addFood(Food('first', 100, 4));
     bookmarks.addFood(Food('second', 130, 20));
     mealHistory.add(OneDayFoods(name: 'first', foods: [Food('first', 100, 4)], date: DateTime(2024, 1, 5)));
@@ -32,73 +33,77 @@ class _DietMenuState extends State<DietMenu> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('diet'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            // 오늘의 식단
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(0),
+    return Builder(
+      builder: (context) {
+        return Scaffold(
+          appBar: AppBar(
+            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+            title: const Text('diet'),
+          ),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                // 오늘의 식단
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(0),
+                    ),
+                    fixedSize: const Size(300, 100),
+                  ),
+                  child: const Text('오늘의 식단',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => TodayDietWidget(todayDiet: todayDiet, bookmarks: bookmarks,)),
+                    );
+                  },
                 ),
-                fixedSize: const Size(300, 100),
-              ),
-              child: const Text('오늘의 식단',
-                style: TextStyle(fontSize: 18),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => TodayDietWidget(todayDiet: todayDiet, bookmarks: bookmarks,)),
-                );
-              },
+                const SizedBox(height: 80),
+                // 즐겨찾기
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(0),
+                    ),
+                    fixedSize: const Size(300, 100),
+                  ),
+                  child: const Text('즐겨찾기',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => BookmarkWidget(todayDiet: todayDiet, bookmarks: bookmarks,)),
+                    );
+                  },
+                ),
+                const SizedBox(height: 80),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(0),
+                    ),
+                    fixedSize: const Size(300, 100),
+                  ),
+                  child: const Text('달력',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => CalendarWidget(mealHistory: mealHistory, todayDiet: todayDiet,)),
+                    );
+                  },
+                )
+              ],
             ),
-            const SizedBox(height: 80),
-            // 즐겨찾기
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(0),
-                ),
-                fixedSize: const Size(300, 100),
-              ),
-              child: const Text('즐겨찾기',
-                style: TextStyle(fontSize: 18),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => BookmarkWidget(todayDiet: todayDiet, bookmarks: bookmarks,)),
-                );
-              },
-            ),
-            const SizedBox(height: 80),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(0),
-                ),
-                fixedSize: const Size(300, 100),
-              ),
-              child: const Text('달력',
-                style: TextStyle(fontSize: 18),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => CalendarWidget(mealHistory: mealHistory, todayDiet: todayDiet,)),
-                );
-              },
-            )
-          ],
-        ),
-      ),
+          ),
+        );
+      }
     );
   }
 }
@@ -117,7 +122,22 @@ class _TodayDietWidgetState extends State<TodayDietWidget> {
   final List<TextEditingController> _nameCtrl = [];
   final List<TextEditingController> _gramCtrl = [];
   final List<TextEditingController> _kcalCtrl = [];
-  List<Widget> textFieldRows = [];
+  List<List<Widget>> textFieldRows = [];
+
+  @override
+  void dispose() {
+    _todayName.dispose();
+    for (var controller in _nameCtrl) {
+      controller.dispose();
+    }
+    for (var controller in _gramCtrl) {
+      controller.dispose();
+    }
+    for (var controller in _kcalCtrl) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -127,93 +147,49 @@ class _TodayDietWidgetState extends State<TodayDietWidget> {
       _nameCtrl.add(TextEditingController(text: widget.todayDiet.foods[index].name));
       _gramCtrl.add(TextEditingController(text: widget.todayDiet.foods[index].grams.toString()));
       _kcalCtrl.add(TextEditingController(text: widget.todayDiet.foods[index].kcal.toString()));
-      textFieldRows.add(
-        Row(
-          children: [
-            Expanded(
-              child: SizedBox(
-                width: 100,
-                height: 100,
-                child: TextField(
-                  controller: _nameCtrl.last,
-                  decoration: const InputDecoration(
-                    labelText: 'Food Name: ',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
+      textFieldRows.add([
+        Expanded(
+          child: SizedBox(
+            width: 100,
+            height: 100,
+            child: TextField(
+              controller: _nameCtrl.last,
+              decoration: const InputDecoration(
+                labelText: 'Food Name: ',
+                border: OutlineInputBorder(),
               ),
             ),
-            Expanded(
-              child: SizedBox(
-                width: 100,
-                height: 100,
-                child: TextField(
-                  controller: _gramCtrl.last,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: const InputDecoration(
-                    labelText: 'Grams: ',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ),
-            ),
-            Expanded(
-              child: SizedBox(
-                width: 100,
-                height: 100,
-                child: TextField(
-                  controller: _kcalCtrl.last,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: const InputDecoration(
-                    labelText: 'Kcal: ',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(
-              width: 50,
-              height: 100,
-              child: Column(
-                children: [
-                  IconButton(
-                    style: IconButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(0),
-                      ),
-                    ),
-                    onPressed: () {
-                    },
-                    icon: const Icon(Icons.delete)
-                  ),
-                  IconButton(
-                    style: IconButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(0),
-                      ),
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        if (_nameCtrl[index].text == '') {
-                          const AlertDialog(actions: [Text('please enter a name')],);
-                          return;
-                        }
-                        widget.bookmarks.addFood(
-                          Food(_nameCtrl[index].text, 
-                          int.parse(_gramCtrl[index].text == '' ? '0' : _gramCtrl[index].text), 
-                          int.parse(_kcalCtrl[index].text == '' ? '0' : _kcalCtrl[index].text)
-                        ));
-                      });
-                    },
-                    icon: const Icon(Icons.bookmark)
-                  ),
-                  const Spacer(),
-                ],
-              ),
-            )
-          ],
+          ),
         ),
-      );
+        Expanded(
+          child: SizedBox(
+            width: 100,
+            height: 100,
+            child: TextField(
+              controller: _gramCtrl.last,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: const InputDecoration(
+                labelText: 'Grams: ',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: SizedBox(
+            width: 100,
+            height: 100,
+            child: TextField(
+              controller: _kcalCtrl.last,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: const InputDecoration(
+                labelText: 'Kcal: ',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
+        ),
+      ],);
     }
   }
 
@@ -244,9 +220,63 @@ class _TodayDietWidgetState extends State<TodayDietWidget> {
               )
             ],
           ),
-          Column(
-            children: textFieldRows,
-          ),
+          for(int index = 0; index < _nameCtrl.length; index++)
+            Row(
+              children: textFieldRows[index] + [
+                SizedBox(
+                  width: 50,
+                  height: 100,
+                  child: Column(
+                    children: [
+                      IconButton(
+                        style: IconButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(0),
+                          ),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _nameCtrl[index].dispose();
+                            _gramCtrl[index].dispose();
+                            _kcalCtrl[index].dispose();
+                            _nameCtrl.removeAt(index);
+                            _gramCtrl.removeAt(index);
+                            _kcalCtrl.removeAt(index);
+                            textFieldRows.removeAt(index);
+                          });
+                        },
+                        icon: const Icon(Icons.delete)
+                      ),
+                      IconButton(
+                        style: IconButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(0),
+                          ),
+                        ),
+                        onPressed: () {
+                          if (_nameCtrl[index].text == '') {
+                            showDialog(
+                              context: context, 
+                              builder: (context) => const AlertDialog(content: Text('이름을 적어주세요'),)
+                            );
+                            return;
+                          }
+                          setState(() {
+                            widget.bookmarks.addFood(
+                              Food(_nameCtrl[index].text, 
+                              int.parse(_gramCtrl[index].text == '' ? '0' : _gramCtrl[index].text), 
+                              int.parse(_kcalCtrl[index].text == '' ? '0' : _kcalCtrl[index].text)
+                            ));
+                          });
+                        },
+                        icon: const Icon(Icons.bookmark)
+                      ),
+                      const Spacer(),
+                    ],
+                  ),
+                )
+              ],
+            ),
           Center(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -264,74 +294,49 @@ class _TodayDietWidgetState extends State<TodayDietWidget> {
                       _nameCtrl.add(TextEditingController());
                       _gramCtrl.add(TextEditingController());
                       _kcalCtrl.add(TextEditingController());
-                      textFieldRows.add(
-                        Row(
-                          children: [
-                            Expanded(
-                              child: SizedBox(
-                                width: 100,
-                                height: 100,
-                                child: TextField(
-                                  controller: _nameCtrl.last,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Food Name: ',
-                                    border: OutlineInputBorder(),
-                                  ),
-                                ),
+                      textFieldRows.add([
+                        Expanded(
+                          child: SizedBox(
+                            width: 100,
+                            height: 100,
+                            child: TextField(
+                              controller: _nameCtrl.last,
+                              decoration: const InputDecoration(
+                                labelText: 'Food Name: ',
+                                border: OutlineInputBorder(),
                               ),
                             ),
-                            Expanded(
-                              child: SizedBox(
-                                width: 100,
-                                height: 100,
-                                child: TextField(
-                                  controller: _gramCtrl.last,
-                                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                                  decoration: const InputDecoration(
-                                    labelText: 'Grams: ',
-                                    border: OutlineInputBorder(),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: SizedBox(
-                                width: 100,
-                                height: 100,
-                                child: TextField(
-                                  controller: _kcalCtrl.last,
-                                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                                  decoration: const InputDecoration(
-                                    labelText: 'Kcal: ',
-                                    border: OutlineInputBorder(),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            IconButton(
-                              style: ElevatedButton.styleFrom(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(0),
-                                ),
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  if (_nameCtrl.last.text == '') {
-                                    const AlertDialog(actions: [Text('please enter a name')],);
-                                    return;
-                                  }
-                                  widget.bookmarks.addFood(
-                                    Food(_nameCtrl.last.text, 
-                                    int.parse(_gramCtrl.last.text == '' ? '0' : _gramCtrl.last.text), 
-                                    int.parse(_kcalCtrl.last.text == '' ? '0' : _kcalCtrl.last.text)
-                                  ));
-                                });
-                              },
-                              icon: const Icon(Icons.bookmark)
-                            )
-                          ],
+                          ),
                         ),
-                      );
+                        Expanded(
+                          child: SizedBox(
+                            width: 100,
+                            height: 100,
+                            child: TextField(
+                              controller: _gramCtrl.last,
+                              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                              decoration: const InputDecoration(
+                                labelText: 'Grams: ',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: SizedBox(
+                            width: 100,
+                            height: 100,
+                            child: TextField(
+                              controller: _kcalCtrl.last,
+                              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                              decoration: const InputDecoration(
+                                labelText: 'Kcal: ',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ]);
                     });
                   },
                 ),
@@ -358,6 +363,9 @@ class _TodayDietWidgetState extends State<TodayDietWidget> {
                         ));
                       }
                     });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('저장되었습니다.')),
+                    );
                   },
                 )
               ],
@@ -447,7 +455,8 @@ class _BookmarksState extends State<BookmarkWidget> {
           ),
         ] : [],
       ),
-      body: _isEditing 
+    body: ListView(children: 
+      [_isEditing 
             ? DataTable(
               columns: const [
                 DataColumn(label: Text('음식 이름')),
@@ -525,6 +534,7 @@ class _BookmarksState extends State<BookmarkWidget> {
                   ),
               ],
             ),
+        ]),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pop(context);
@@ -582,10 +592,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
             selectedDayPredicate: (day) {
               return isSameDay(_selectedDay, day);
             },
-            eventLoader: (day) {
-              final mealForSelectedDay = widget.mealHistory.get(day);
-              return mealForSelectedDay == null ? [] : [mealForSelectedDay.name];
-            },
+            eventLoader: (day) => widget.mealHistory.getAll(day)
           ),
           const Divider(),
           ListTile(
@@ -611,6 +618,9 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                         setState(() {
                           widget.todayDiet.addFood(meal);
                         });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('오늘의 메뉴에 추가되었습니다.')),
+                        );
                       }),
                       title: Text(meal.name),
                       subtitle: Text('${meal.grams.toString()}g, ${meal.kcal.toString()}kcal'),
