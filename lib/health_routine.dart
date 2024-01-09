@@ -4,10 +4,11 @@ import 'package:table_calendar/table_calendar.dart';
 
 class Exercise {
   String mainname;
-  String name;
-  int sets;
-  double kg;
-  int reps;
+  List<String> name;
+  List<int> sets;
+  List<double> kg;
+  List<int> reps;
+  int textFieldCount;
 
   Exercise({
     required this.mainname,
@@ -15,6 +16,7 @@ class Exercise {
     required this.sets,
     required this.kg,
     required this.reps,
+    required this.textFieldCount,
 
   });
 }
@@ -36,6 +38,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
   var kgController = [TextEditingController()];
   var repsController = [TextEditingController()];
 
+  int textFieldCount = 1;
   List<Widget> textFieldRows = [];
 
   @override
@@ -117,10 +120,12 @@ class _CreateRoutineState extends State<CreateRoutine> {
                                {
                                  Exercise exercise = Exercise(
                                    mainname: mainnameController.text,
-                                   name: nameController[i].text,
-                                   sets: int.parse(setsController[i].text),
-                                   kg: double.parse(kgController[i].text),
-                                   reps: int.parse(repsController[i].text),
+                                   name: [nameController[i].text],
+                                   sets: [int.parse(setsController[i].text)],
+                                   kg: [double.parse(kgController[i].text)],
+                                   reps: [int.parse(repsController[i].text)],
+                                   textFieldCount: textFieldCount,
+
                                  );
                                  exercises.add(exercise);
                                }
@@ -162,7 +167,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
 
 
 
-            _elevatedButton(context),
+            _elevatedButton(context,textFieldCount),
 
             ],
           ),
@@ -178,7 +183,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
     );
   }
 
-  Widget _elevatedButton(BuildContext context) {
+  Widget _elevatedButton(BuildContext context,int textFieldCount) {
 
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
@@ -194,11 +199,13 @@ class _CreateRoutineState extends State<CreateRoutine> {
       onPressed: () {
         // Add a new row of text fields when the '+' button is pressed
         setState(() {
-
+          textFieldCount++;
           nameController.add(TextEditingController());
           kgController.add(TextEditingController());
           repsController.add(TextEditingController());
           setsController.add(TextEditingController());
+
+
 
 
           textFieldRows.add(
@@ -213,6 +220,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
                       decoration: InputDecoration(
                         labelText: 'Name: ',
                         border: OutlineInputBorder(),
+
                       ),
                     ),
                   ),
@@ -256,20 +264,73 @@ class _CreateRoutineState extends State<CreateRoutine> {
                     ),
                   ),
                 ),
-              ElevatedButton(
-                  onPressed: (){
-                    _elevatedButton(context);
-                  },
-                  child: const Text(
-                    '+',
-                  )
-              )
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        nameController.add(TextEditingController());
+                        kgController.add(TextEditingController());
+                        repsController.add(TextEditingController());
+                        setsController.add(TextEditingController());
+                      });
+                      // Add a new row of text fields when the 'thisadd' button is pressed
 
+                      textFieldRows.insert(textFieldCount , Row(
+                        children: [
 
+                          Expanded(
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              child: TextField(
+                                controller:  setsController[textFieldRows.length - 1],
+                                decoration: InputDecoration(
+                                  labelText: 'Sets: ',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              child: TextField(
+                                controller: kgController[textFieldRows.length - 1],
+                                decoration: InputDecoration(
+                                  labelText: 'kg: ',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              child: TextField(
+                                controller: repsController[textFieldRows.length - 1],
+                                decoration: InputDecoration(
+                                  labelText: 'reps: ',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                            ),
+                          ),
+
+                        ],
+                      ));
+                    },
+                    child: const Text(
+                      'thisadd',
+                    ),
+                  ),
+                )
 
               ],
             ),
           );
+
 
 
 
@@ -369,16 +430,21 @@ class _RoutineWidgetState extends State<RoutineWidget> {
 
   // 운동 편집 다이얼로그
   Future<void> _editExercise(Exercise exercise) async {
-    TextEditingController nameController = TextEditingController();
-    TextEditingController setsController = TextEditingController();
-    TextEditingController kgController = TextEditingController();
-    TextEditingController repsController = TextEditingController();
+    TextEditingController mainnameController = TextEditingController();
+    List<TextEditingController> nameControllers = [];
+    List<TextEditingController> setsControllers = [];
+    List<TextEditingController> kgControllers = [];
+    List<TextEditingController> repsControllers = [];
+
 
     // 기존 값으로 컨트롤러 초기화
-    nameController.text = exercise.name;
-    setsController.text = exercise.sets.toString();
-    kgController.text = exercise.kg.toString();
-    repsController.text = exercise.reps.toString();
+    mainnameController.text = exercise.mainname;
+    for (int i = 0; i < exercise.name.length; i++) {
+      nameControllers.add(TextEditingController(text: exercise.name[i]));
+      setsControllers.add(TextEditingController(text: exercise.sets[i].toString()));
+      kgControllers.add(TextEditingController(text: exercise.kg[i].toString()));
+      repsControllers.add(TextEditingController(text: exercise.reps[i].toString()));
+    }
 
     // 다이얼로그 열기
     await showDialog(
@@ -388,22 +454,33 @@ class _RoutineWidgetState extends State<RoutineWidget> {
           title: Text('Edit Exercise'),
           content: Column(
             children: [
+              // mainname 편집은 필요에 따라 추가
               TextField(
-                controller: nameController,
-                decoration: InputDecoration(labelText: 'Name'),
+                controller: mainnameController,
+                decoration: InputDecoration(labelText: 'Main Name'),
               ),
-              TextField(
-                controller: setsController,
-                decoration: InputDecoration(labelText: 'Sets'),
-              ),
-              TextField(
-                controller: kgController,
-                decoration: InputDecoration(labelText: 'KG'),
-              ),
-              TextField(
-                controller: repsController,
-                decoration: InputDecoration(labelText: 'Reps'),
-              ),
+              // 운동 정보들을 리스트로 편집
+              for (int i = 0; i < nameControllers.length; i++)
+                Column(
+                  children: [
+                    TextField(
+                      controller: nameControllers[i],
+                      decoration: InputDecoration(labelText: 'Name'),
+                    ),
+                    TextField(
+                      controller: setsControllers[i],
+                      decoration: InputDecoration(labelText: 'Sets'),
+                    ),
+                    TextField(
+                      controller: kgControllers[i],
+                      decoration: InputDecoration(labelText: 'KG'),
+                    ),
+                    TextField(
+                      controller: repsControllers[i],
+                      decoration: InputDecoration(labelText: 'Reps'),
+                    ),
+                  ],
+                ),
             ],
           ),
           actions: [
@@ -411,10 +488,18 @@ class _RoutineWidgetState extends State<RoutineWidget> {
               onPressed: () {
                 // 편집 완료 시 운동 정보 업데이트
                 setState(() {
-                  exercise.name = nameController.text;
-                  exercise.sets = int.parse(setsController.text);
-                  exercise.kg = double.parse(kgController.text);
-                  exercise.reps = int.parse(repsController.text);
+                  exercise.mainname = mainnameController.text;
+                  exercise.name.clear();
+                  exercise.sets.clear();
+                  exercise.kg.clear();
+                  exercise.reps.clear();
+
+                  for (int i = 0; i < nameControllers.length; i++) {
+                    exercise.name.add(nameControllers[i].text);
+                    exercise.sets.add(int.parse(setsControllers[i].text));
+                    exercise.kg.add(double.parse(kgControllers[i].text));
+                    exercise.reps.add(int.parse(repsControllers[i].text));
+                  }
                 });
                 Navigator.pop(context);
               },
