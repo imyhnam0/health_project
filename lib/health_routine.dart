@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 class Exercise {
+  String mainname;
   String name;
   int sets;
   double kg;
   int reps;
 
   Exercise({
+    required this.mainname,
     required this.name,
     required this.sets,
     required this.kg,
@@ -15,22 +17,23 @@ class Exercise {
   });
 }
 
+List<Exercise> exercises = [];
+
 class CreateRoutine extends StatefulWidget {
   const CreateRoutine({Key? key}) : super(key: key);
 
   @override
   State<CreateRoutine> createState() => _CreateRoutineState();
-} 
+}
 
 class _CreateRoutineState extends State<CreateRoutine> {
 
+  var mainnameController = TextEditingController();
   var nameController = [TextEditingController()];
   var setsController = [TextEditingController()];
   var kgController = [TextEditingController()];
   var repsController = [TextEditingController()];
 
-
-  List<Exercise> exercises = [];
   List<Widget> textFieldRows = [];
 
   @override
@@ -44,54 +47,15 @@ class _CreateRoutineState extends State<CreateRoutine> {
                 width: 100,
                 height: 100,
                 child: TextField(
-                  controller: nameController[0],
+                  controller: mainnameController,
                   decoration: InputDecoration(
-                    labelText: 'Name: ',
+                    labelText: 'Routine Name: ',
                     border: OutlineInputBorder(),
                   ),
                 ),
               ),
             ),
-            Expanded(
-              child: Container(
-                width: 100,
-                height: 100,
-                child: TextField(
-                  controller: setsController[0],
-                  decoration: InputDecoration(
-                    labelText: 'Sets: ',
-                    border: OutlineInputBorder(),
-                  ),
 
-                ),
-              ),
-            ),
-            Expanded(
-              child: Container(
-                width: 100,
-                height: 100,
-                child: TextField(
-                  controller: kgController[0],
-                  decoration: InputDecoration(
-                    labelText: 'kg: ',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ),
-            ),
-            Expanded(
-              child: Container(
-                width: 100,
-                height: 100,
-                child: TextField(
-                  controller: repsController[0],
-                  decoration: InputDecoration(
-                    labelText: 'reps: ',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ),
-            ),
           ],
         ));
   }
@@ -106,13 +70,6 @@ class _CreateRoutineState extends State<CreateRoutine> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
 
-
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Name: ',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
               const SizedBox(height: 10),
               // Display the list of text field rows
               Column(children: textFieldRows),
@@ -149,12 +106,15 @@ class _CreateRoutineState extends State<CreateRoutine> {
                            ),
                            onPressed: () {
                              Navigator.of(context).pop();
-
+                             Navigator.push(
+                                 context,
+                                 MaterialPageRoute(builder: (context) => const HealthRoutineMenu()));
 
                              setState(() {
                                for(int i=0;i<nameController.length;i++)
                                {
                                  Exercise exercise = Exercise(
+                                   mainname: mainnameController.text,
                                    name: nameController[i].text,
                                    sets: int.parse(setsController[i].text),
                                    kg: double.parse(kgController[i].text),
@@ -162,11 +122,14 @@ class _CreateRoutineState extends State<CreateRoutine> {
                                  );
                                  exercises.add(exercise);
                                }
+
+                               print("inner Exercises:");
+                               for (Exercise storedExercise in exercises) {
+                                 print("Name: ${storedExercise.name}, Sets: ${storedExercise.sets}, KG: ${storedExercise.kg}, Reps: ${storedExercise.reps}");
+                               }
+
                              });
-                             print("inner Exercises:");
-                             for (Exercise storedExercise in exercises) {
-                               print("Name: ${storedExercise.name}, Sets: ${storedExercise.sets}, KG: ${storedExercise.kg}, Reps: ${storedExercise.reps}");
-                             }
+
 
 
                            },
@@ -217,6 +180,8 @@ class _CreateRoutineState extends State<CreateRoutine> {
 
 
 
+
+
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         shape: RoundedRectangleBorder(
@@ -231,10 +196,12 @@ class _CreateRoutineState extends State<CreateRoutine> {
       onPressed: () {
         // Add a new row of text fields when the '+' button is pressed
         setState(() {
+
           nameController.add(TextEditingController());
           kgController.add(TextEditingController());
           repsController.add(TextEditingController());
           setsController.add(TextEditingController());
+
           textFieldRows.add(
             Row(
               children: [
@@ -243,7 +210,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
                     width: 100,
                     height: 100,
                     child: TextField(
-                      controller: nameController[nameController.length-1],
+                      controller: nameController.isNotEmpty ? nameController[textFieldRows.length - 1] : nameController[0],
                       decoration: InputDecoration(
                         labelText: 'Name: ',
                         border: OutlineInputBorder(),
@@ -256,7 +223,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
                     width: 100,
                     height: 100,
                     child: TextField(
-                      controller: setsController[setsController.length-1],
+                      controller: setsController.isNotEmpty ? setsController[textFieldRows.length - 1] : setsController[0],
                       decoration: InputDecoration(
                         labelText: 'Sets: ',
                         border: OutlineInputBorder(),
@@ -269,7 +236,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
                     width: 100,
                     height: 100,
                     child: TextField(
-                      controller: kgController[kgController.length-1],
+                      controller: kgController.isNotEmpty ? kgController[textFieldRows.length - 1] : kgController[0],
                       decoration: InputDecoration(
                         labelText: 'kg: ',
                         border: OutlineInputBorder(),
@@ -282,7 +249,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
                     width: 100,
                     height: 100,
                     child: TextField(
-                      controller: repsController[repsController.length-1],
+                      controller: repsController.isNotEmpty ? repsController[textFieldRows.length - 1] : repsController[0],
                       decoration: InputDecoration(
                         labelText: 'reps: ',
                         border: OutlineInputBorder(),
@@ -303,9 +270,101 @@ class _CreateRoutineState extends State<CreateRoutine> {
   }
 }
 
-class Favorite extends StatelessWidget{
-  const Favorite({super.key});
 
+class RoutineWidget extends StatelessWidget {
+  final String routineName;
+  final List<Exercise> exercises;
+
+  const RoutineWidget({Key? key, required this.routineName, required this.exercises})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ElevatedButton(
+        onPressed: () {
+          // 버튼이 눌렸을 때 수행할 동작 추가
+          // 예를 들어, 해당 루틴에 대한 상세 정보를 표시하는 다이얼로그를 띄울 수 있습니다.
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Routine Details'),
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Routine Name: $routineName'),
+                    for (Exercise exercise in exercises)
+                      Text(
+                        '  - Name: ${exercise.name}, Sets: ${exercise.sets}, KG: ${exercise.kg}, Reps: ${exercise.reps}',
+                      ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text('Close'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+        child: Text(routineName),
+      ),
+    );
+  }
+}
+
+
+
+class Favorite extends StatelessWidget {
+  final List<Exercise> exercises;
+
+  const Favorite({Key? key, required this.exercises}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // 중복된 루틴 이름(mainname)을 제거한 리스트
+    List<String> uniqueRoutineNames =
+    exercises.map((exercise) => exercise.mainname).toSet().toList();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('My Exercises'),
+      ),
+      body: ListView.builder(
+        itemCount: uniqueRoutineNames.length,
+        itemBuilder: (context, index) {
+          String routineName = uniqueRoutineNames[index];
+          List<Exercise> routineExercises = exercises
+              .where((exercise) => exercise.mainname == routineName)
+              .toList();
+
+          return RoutineWidget(routineName: routineName, exercises: routineExercises);
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pop(context);
+        },
+        tooltip: 'Home menu',
+        child: Icon(Icons.home),
+      ),
+    );
+  }
+}
+
+class Calender extends StatefulWidget{
+  const Calender({super.key});
+
+  @override
+  State<Calender> createState() => _CalenderState();
+}
+
+class _CalenderState extends State<Calender> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -314,15 +373,19 @@ class Favorite extends StatelessWidget{
 
       // main page로 돌아가는 버튼
       // navigator 사용법은 다음 웹페이지에서 설명함
-
+      // https://docs.flutter.dev/cookbook/navigation/navigation-basics
       floatingActionButton: FloatingActionButton(
-        onPressed: () {Navigator.pop(context);},
+        onPressed: () {
+          Navigator.pop(context);
+        },
         tooltip: 'Home menu',
         child: const Icon(Icons.home),
       ),
     );
   }
 }
+
+
 
 class HealthRoutineMenu extends StatelessWidget{
   const HealthRoutineMenu({super.key});
@@ -373,7 +436,7 @@ class HealthRoutineMenu extends StatelessWidget{
                 onPressed: (){
                   Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const Favorite()),
+                      MaterialPageRoute(builder: (context) => Favorite(exercises: exercises))
                   );
                 }
 
@@ -391,7 +454,12 @@ class HealthRoutineMenu extends StatelessWidget{
                 child: const Text('달력',
                   style: TextStyle(fontSize: 18),
                 ),
-                onPressed: (){}
+                onPressed: (){
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const Calender()),
+                  );
+                }
 
             ),
           ],
