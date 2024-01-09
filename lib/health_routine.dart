@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:table_calendar/table_calendar.dart';
+
 
 class Exercise {
   String mainname;
@@ -178,10 +180,6 @@ class _CreateRoutineState extends State<CreateRoutine> {
 
   Widget _elevatedButton(BuildContext context) {
 
-
-
-
-
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         shape: RoundedRectangleBorder(
@@ -201,6 +199,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
           kgController.add(TextEditingController());
           repsController.add(TextEditingController());
           setsController.add(TextEditingController());
+
 
           textFieldRows.add(
             Row(
@@ -257,6 +256,17 @@ class _CreateRoutineState extends State<CreateRoutine> {
                     ),
                   ),
                 ),
+              ElevatedButton(
+                  onPressed: (){
+                    _elevatedButton(context);
+                  },
+                  child: const Text(
+                    '+',
+                  )
+              )
+
+
+
               ],
             ),
           );
@@ -271,65 +281,175 @@ class _CreateRoutineState extends State<CreateRoutine> {
 }
 
 
-class RoutineWidget extends StatelessWidget {
+class RoutineWidget extends StatefulWidget {
   final String routineName;
   final List<Exercise> exercises;
+  final VoidCallback onDelete;
 
-  const RoutineWidget({Key? key, required this.routineName, required this.exercises})
+  const RoutineWidget({Key? key, required this.routineName, required this.exercises, required this.onDelete})
       : super(key: key);
 
   @override
+  State<RoutineWidget> createState() => _RoutineWidgetState();
+}
+
+class _RoutineWidgetState extends State<RoutineWidget> {
+  @override
   Widget build(BuildContext context) {
     return Card(
-      child: ElevatedButton(
-        onPressed: () {
-          // 버튼이 눌렸을 때 수행할 동작 추가
-          // 예를 들어, 해당 루틴에 대한 상세 정보를 표시하는 다이얼로그를 띄울 수 있습니다.
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text('Routine Details'),
-                content: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Routine Name: $routineName'),
-                    for (Exercise exercise in exercises)
-                      Text(
-                        '  - Name: ${exercise.name}, Sets: ${exercise.sets}, KG: ${exercise.kg}, Reps: ${exercise.reps}',
+
+      child: Column(
+        children: [
+          ElevatedButton(
+            onPressed: () {
+              // 버튼이 눌렸을 때 수행할 동작 추가
+              // 예를 들어, 해당 루틴에 대한 상세 정보를 표시하는 다이얼로그를 띄울 수 있습니다.
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Routine Name: ${widget.routineName}'),
+                    content: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (Exercise exercise in widget.exercises)
+                          ListTile(
+                            title: Text(
+                              'Name: ${exercise.name}, Sets: ${exercise
+                                  .sets}, KG: ${exercise.kg}, Reps: ${exercise
+                                  .reps}',
+                              style: TextStyle(fontSize: 16),
+                            ),
+
+                            trailing: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _editExercise(exercise);
+                                });
+                                // 편집 버튼이 눌렸을 때 수행할 동작 추가
+
+                              },
+                              child: Text('Edit'),
+                            ),
+                          ),
+                      ],
+                    ),
+                    actions: [
+                      ElevatedButton(
+                        onPressed: () {
+
+                          widget.onDelete();
+                          Navigator.pop(context);
+                        },
+                        child: Text('Delete'),
                       ),
-                  ],
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text('Close'),
-                  ),
-                ],
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          'Close',
+                          style: TextStyle(
+                            color: Colors.blue, // 버튼 텍스트 색상
+                            fontSize: 18.0,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               );
             },
-          );
-        },
-        child: Text(routineName),
+            child: Text(widget.routineName),
+          ),
+        ],
       ),
+    );
+  }
+
+  // 운동 편집 다이얼로그
+  Future<void> _editExercise(Exercise exercise) async {
+    TextEditingController nameController = TextEditingController();
+    TextEditingController setsController = TextEditingController();
+    TextEditingController kgController = TextEditingController();
+    TextEditingController repsController = TextEditingController();
+
+    // 기존 값으로 컨트롤러 초기화
+    nameController.text = exercise.name;
+    setsController.text = exercise.sets.toString();
+    kgController.text = exercise.kg.toString();
+    repsController.text = exercise.reps.toString();
+
+    // 다이얼로그 열기
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Edit Exercise'),
+          content: Column(
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(labelText: 'Name'),
+              ),
+              TextField(
+                controller: setsController,
+                decoration: InputDecoration(labelText: 'Sets'),
+              ),
+              TextField(
+                controller: kgController,
+                decoration: InputDecoration(labelText: 'KG'),
+              ),
+              TextField(
+                controller: repsController,
+                decoration: InputDecoration(labelText: 'Reps'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                // 편집 완료 시 운동 정보 업데이트
+                setState(() {
+                  exercise.name = nameController.text;
+                  exercise.sets = int.parse(setsController.text);
+                  exercise.kg = double.parse(kgController.text);
+                  exercise.reps = int.parse(repsController.text);
+                });
+                Navigator.pop(context);
+              },
+              child: Text('Save'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Cancel'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
 
 
 
-class Favorite extends StatelessWidget {
+class Favorite extends StatefulWidget {
   final List<Exercise> exercises;
 
   const Favorite({Key? key, required this.exercises}) : super(key: key);
 
   @override
+  State<Favorite> createState() => _FavoriteState();
+}
+
+class _FavoriteState extends State<Favorite> {
+  @override
   Widget build(BuildContext context) {
     // 중복된 루틴 이름(mainname)을 제거한 리스트
     List<String> uniqueRoutineNames =
-    exercises.map((exercise) => exercise.mainname).toSet().toList();
+    widget.exercises.map((exercise) => exercise.mainname).toSet().toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -339,11 +459,23 @@ class Favorite extends StatelessWidget {
         itemCount: uniqueRoutineNames.length,
         itemBuilder: (context, index) {
           String routineName = uniqueRoutineNames[index];
-          List<Exercise> routineExercises = exercises
+          List<Exercise> routineExercises = widget.exercises
               .where((exercise) => exercise.mainname == routineName)
               .toList();
 
-          return RoutineWidget(routineName: routineName, exercises: routineExercises);
+          return RoutineWidget(routineName: routineName, exercises: routineExercises,onDelete: () {
+            // 삭제 버튼 눌렀을 때 수행할 동작
+            // exercises 리스트에서 해당 루틴을 제거
+
+            setState(() {
+              widget.exercises.removeWhere((exercise) => exercise.mainname == routineName);
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Routine "$routineName" deleted.'),
+              ),
+            );
+          },);
         },
       ),
       floatingActionButton: FloatingActionButton(
@@ -358,22 +490,44 @@ class Favorite extends StatelessWidget {
 }
 
 class Calender extends StatefulWidget{
-  const Calender({super.key});
+  const Calender({Key? key}) : super(key: key);
 
   @override
   State<Calender> createState() => _CalenderState();
 }
 
 class _CalenderState extends State<Calender> {
+
+  DateTime selectedDay = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+    DateTime.now().day,
+  );
+  DateTime focusedDay = DateTime.now();
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // UI의 해당 부분이 미완성임을 표시하는 위젯
-      body: Placeholder(),
+      appBar: AppBar(),
+      body: TableCalendar(
+        firstDay: DateTime.utc(2024, 1, 1),
+        lastDay: DateTime.utc(2030, 1, 11),
+        focusedDay: focusedDay,
+        onDaySelected: (DateTime selectedDay, DateTime focusedDay) {
+          // 선택된 날짜의 상태를 갱신합니다.
+          setState((){
+            this.selectedDay = selectedDay;
+            this.focusedDay = focusedDay;
+          });
+        },
+        selectedDayPredicate: (DateTime day) {
+          // selectedDay 와 동일한 날짜의 모양을 바꿔줍니다.
+          return isSameDay(selectedDay, day);
+        },
+      ),
 
-      // main page로 돌아가는 버튼
-      // navigator 사용법은 다음 웹페이지에서 설명함
-      // https://docs.flutter.dev/cookbook/navigation/navigation-basics
+
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pop(context);
@@ -384,6 +538,8 @@ class _CalenderState extends State<Calender> {
     );
   }
 }
+
+
 
 
 
