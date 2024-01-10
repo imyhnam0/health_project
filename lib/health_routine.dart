@@ -8,7 +8,6 @@ class Exercise {
   List<int> sets;
   List<double> kg;
   List<int> reps;
-  int textFieldCount;
 
   Exercise({
     required this.mainname,
@@ -16,12 +15,12 @@ class Exercise {
     required this.sets,
     required this.kg,
     required this.reps,
-    required this.textFieldCount,
 
   });
 }
 
 List<Exercise> exercises = [];
+DateTime savedDay = DateTime.now();
 
 class CreateRoutine extends StatefulWidget {
   const CreateRoutine({Key? key}) : super(key: key);
@@ -33,17 +32,20 @@ class CreateRoutine extends StatefulWidget {
 class _CreateRoutineState extends State<CreateRoutine> {
 
   var mainnameController = TextEditingController();
-  var nameController = [TextEditingController()];
-  var setsController = [TextEditingController()];
-  var kgController = [TextEditingController()];
-  var repsController = [TextEditingController()];
+  var nameController = <Map<int , TextEditingController>>[];
+  var setsController =  <Map<int , TextEditingController>>[];
+  var kgController =  <Map<int , TextEditingController>>[];
+  var repsController =  <Map<int , TextEditingController>>[];
 
-  int textFieldCount = 1;
   List<Widget> textFieldRows = [];
+  DateTime savedDay = DateTime.now();
+
+  int i=1;
 
   @override
  void initState() {
     super.initState();
+    i = 1;
     textFieldRows.add( // Initial row of text fields
         Row(
           children: [
@@ -122,11 +124,11 @@ class _CreateRoutineState extends State<CreateRoutine> {
                                {
                                  Exercise exercise = Exercise(
                                    mainname: mainnameController.text,
-                                   name: [nameController[i].text],
-                                   sets: [int.parse(setsController[i].text)],
-                                   kg: [double.parse(kgController[i].text)],
-                                   reps: [int.parse(repsController[i].text)],
-                                   textFieldCount: textFieldCount,
+                                   name: [nameController[i]?.values.first?.text ?? ''], // Using null-aware operators
+                                   sets: [int.parse(setsController[i]?.values.first?.text ?? '0')], // Using null-aware operators
+                                   kg: [double.parse(kgController[i]?.values.first?.text ?? '0.0')], // Using null-aware operators
+                                   reps: [int.parse(repsController[i]?.values.first?.text ?? '0')],
+
 
                                  );
                                  exercises.add(exercise);
@@ -171,7 +173,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
 
 
 
-            _elevatedButton(context,textFieldCount),
+            _elevatedButton(context),
 
             ],
           ),
@@ -187,7 +189,9 @@ class _CreateRoutineState extends State<CreateRoutine> {
     );
   }
 
-  Widget _elevatedButton(BuildContext context,int textFieldCount) {
+  Widget _elevatedButton(BuildContext context) {
+
+
 
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
@@ -203,14 +207,11 @@ class _CreateRoutineState extends State<CreateRoutine> {
       onPressed: () {
         // Add a new row of text fields when the '+' button is pressed
         setState(() {
-          textFieldCount++;
-          nameController.add(TextEditingController());
-          kgController.add(TextEditingController());
-          repsController.add(TextEditingController());
-          setsController.add(TextEditingController());
-
-
-
+          i++;
+          nameController.add({i: TextEditingController()});
+          kgController.add({i: TextEditingController()});
+          repsController.add({i: TextEditingController()});
+          setsController.add({i: TextEditingController()});
 
           textFieldRows.add(
             Row(
@@ -220,7 +221,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
                     width: 100,
                     height: 100,
                     child: TextField(
-                      controller: nameController.isNotEmpty ? nameController[textFieldRows.length - 1] : nameController[0],
+                      controller: nameController.isNotEmpty ? nameController[textFieldRows.length - 1][textFieldRows.length - 1] : nameController[0][0],
                       decoration: InputDecoration(
                         labelText: 'Name: ',
                         border: OutlineInputBorder(),
@@ -234,7 +235,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
                     width: 100,
                     height: 100,
                     child: TextField(
-                      controller: setsController.isNotEmpty ? setsController[textFieldRows.length - 1] : setsController[0],
+                      controller: setsController.isNotEmpty ? setsController[textFieldRows.length - 1][textFieldRows.length - 1] : setsController[0][0],
                       decoration: InputDecoration(
                         labelText: 'Sets: ',
                         border: OutlineInputBorder(),
@@ -247,7 +248,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
                     width: 100,
                     height: 100,
                     child: TextField(
-                      controller: kgController.isNotEmpty ? kgController[textFieldRows.length - 1] : kgController[0],
+                      controller: kgController.isNotEmpty ? kgController[textFieldRows.length - 1][textFieldRows.length - 1] : kgController[0][0],
                       decoration: InputDecoration(
                         labelText: 'kg: ',
                         border: OutlineInputBorder(),
@@ -260,7 +261,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
                     width: 100,
                     height: 100,
                     child: TextField(
-                      controller: repsController.isNotEmpty ? repsController[textFieldRows.length - 1] : repsController[0],
+                      controller: repsController.isNotEmpty ? repsController[textFieldRows.length - 1][textFieldRows.length - 1] : repsController[0][0],
                       decoration: InputDecoration(
                         labelText: 'reps: ',
                         border: OutlineInputBorder(),
@@ -271,15 +272,18 @@ class _CreateRoutineState extends State<CreateRoutine> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
+
                       setState(() {
-                        nameController.add(TextEditingController());
-                        kgController.add(TextEditingController());
-                        repsController.add(TextEditingController());
-                        setsController.add(TextEditingController());
+
+                        nameController.add({i: TextEditingController()});
+                        kgController.add({i: TextEditingController()});
+                        repsController.add({i: TextEditingController()});
+                        setsController.add({i: TextEditingController()});
                       });
                       // Add a new row of text fields when the 'thisadd' button is pressed
 
-                      textFieldRows.insert(textFieldCount , Row(
+                      textFieldRows.insert(i,
+                        Row(
                         children: [
 
                           Expanded(
@@ -287,7 +291,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
                               width: 100,
                               height: 100,
                               child: TextField(
-                                controller:  setsController[textFieldRows.length - 1],
+                                controller:  setsController[textFieldRows.length - 1][textFieldRows.length - 1],
                                 decoration: InputDecoration(
                                   labelText: 'Sets: ',
                                   border: OutlineInputBorder(),
@@ -300,7 +304,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
                               width: 100,
                               height: 100,
                               child: TextField(
-                                controller: kgController[textFieldRows.length - 1],
+                                controller: kgController[textFieldRows.length - 1][textFieldRows.length - 1],
                                 decoration: InputDecoration(
                                   labelText: 'kg: ',
                                   border: OutlineInputBorder(),
@@ -313,7 +317,7 @@ class _CreateRoutineState extends State<CreateRoutine> {
                               width: 100,
                               height: 100,
                               child: TextField(
-                                controller: repsController[textFieldRows.length - 1],
+                                controller: repsController[textFieldRows.length - 1][textFieldRows.length - 1],
                                 decoration: InputDecoration(
                                   labelText: 'reps: ',
                                   border: OutlineInputBorder(),
@@ -322,8 +326,11 @@ class _CreateRoutineState extends State<CreateRoutine> {
                             ),
                           ),
 
+
                         ],
+
                       ));
+
                     },
                     child: const Text(
                       'thisadd',
@@ -341,12 +348,16 @@ class _CreateRoutineState extends State<CreateRoutine> {
 
         });
       },
+
     );
+
   }
+
 }
 
 
 class RoutineWidget extends StatefulWidget {
+
   final String routineName;
   final List<Exercise> exercises;
   final VoidCallback onDelete;
@@ -359,6 +370,8 @@ class RoutineWidget extends StatefulWidget {
 }
 
 class _RoutineWidgetState extends State<RoutineWidget> {
+
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -407,6 +420,22 @@ class _RoutineWidgetState extends State<RoutineWidget> {
                           Navigator.pop(context);
                         },
                         child: Text('Delete'),
+                      ),
+
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Calender(
+                                exercises: exercises,
+                                selectedDay: savedDay,
+                              ),
+                            ),
+                          );
+                          Navigator.pop(context);
+                        },
+                        child: Text('save'),
                       ),
                       TextButton(
                         onPressed: () {
@@ -579,44 +608,62 @@ class _FavoriteState extends State<Favorite> {
 }
 
 class Calender extends StatefulWidget{
-  const Calender({Key? key}) : super(key: key);
+  final List<Exercise> exercises;
+  final DateTime selectedDay;
+
+  const Calender({Key? key, required this.exercises, required this.selectedDay}) : super(key: key);
+
 
   @override
   State<Calender> createState() => _CalenderState();
 }
 
 class _CalenderState extends State<Calender> {
+  DateTime focusedDay = DateTime.now();
 
   DateTime selectedDay = DateTime(
     DateTime.now().year,
     DateTime.now().month,
     DateTime.now().day,
   );
-  DateTime focusedDay = DateTime.now();
+
 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: TableCalendar(
-        firstDay: DateTime.utc(2024, 1, 1),
-        lastDay: DateTime.utc(2030, 1, 11),
-        focusedDay: focusedDay,
-        onDaySelected: (DateTime selectedDay, DateTime focusedDay) {
-          // 선택된 날짜의 상태를 갱신합니다.
-          setState((){
-            this.selectedDay = selectedDay;
-            this.focusedDay = focusedDay;
-          });
-        },
-        selectedDayPredicate: (DateTime day) {
-          // selectedDay 와 동일한 날짜의 모양을 바꿔줍니다.
-          return isSameDay(selectedDay, day);
-        },
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          TableCalendar(
+            firstDay: DateTime.utc(2024, 1, 1),
+            lastDay: DateTime.utc(2030, 1, 11),
+            focusedDay: focusedDay,
+            onDaySelected: (DateTime selectedDay, DateTime focusedDay) {
+              // 선택된 날짜의 상태를 갱신합니다.
+              setState(() {
+                this.selectedDay = selectedDay;
+                this.focusedDay = focusedDay;
+              });
+            },
+            selectedDayPredicate: (DateTime day) {
+              // selectedDay 와 동일한 날짜의 모양을 바꿔줍니다.
+              return isSameDay(selectedDay, day);
+            },
+          ),
+          Text('운동 정보 - ${widget.selectedDay.year}.${widget.selectedDay.month}.${widget.selectedDay.day}'),
+          for (Exercise exercise in widget.exercises)
+            if (isSameDay(widget.selectedDay, DateTime.parse(exercise.mainname)))
+              for (int i = 0; i < exercise.name.length; i++)
+                ListTile(
+                  title: Text(
+                    'Name: ${exercise.name[i]}, Sets: ${exercise.sets[i]}, KG: ${exercise.kg[i]}, Reps: ${exercise.reps[i]}',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+        ],
       ),
-
-
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pop(context);
@@ -702,8 +749,8 @@ class HealthRoutineMenu extends StatelessWidget{
                 onPressed: (){
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const Calender()),
-                  );
+                    MaterialPageRoute(builder: (context) => Calender(exercises: exercises,selectedDay:savedDay ),
+                  ));
                 }
 
             ),
