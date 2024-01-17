@@ -100,7 +100,6 @@ import 'package:table_calendar/table_calendar.dart';
 // 전체 루틴 리스트를 전역변수로 선언하였기 때문에 class간 통신이 필요 없음
 // 원하면 프로그램 어디서든 exercises를 사용할 수 있음
 List<Exercise> exercises = [];
-DateTime savedDay = DateTime.now();
 
 // 서브루틴이란 하루 루틴의 일부분으로, 하나의 루틴에는 여러 개의 서브루틴이 존재
 // 운동할 때 세트 수, 무게, 횟수 등등이 바뀔 수 있기 때문에 서브루틴을 만들어서 관리
@@ -133,6 +132,7 @@ class SubExercise {
 // 하나의 루틴은 여러 서브루틴으로 구성
 class Exercise {
   String mainname;
+  DateTime date;
   List<String> subExcerciseName;
   Map<String, SubExercise> subExercises;
 
@@ -140,7 +140,7 @@ class Exercise {
     required this.mainname,
     required this.subExcerciseName,
     required this.subExercises,
-  });
+  }) : date = DateTime.now();
 
   List<String> get exerciseNames => subExcerciseName;
   List<SubExercise> get subExercisesList => subExercises.values.toList();
@@ -203,46 +203,46 @@ class HealthRoutineMenu extends StatelessWidget{
                 );
               }
             ),
-            // const SizedBox(height: 80),
+            const SizedBox(height: 80),
 
-            // // 즐겨찾기 메뉴
-            // ElevatedButton(
-            //   style: ElevatedButton.styleFrom(
-            //     shape: RoundedRectangleBorder(
-            //       borderRadius: BorderRadius.circular(0),
-            //     ),
-            //     fixedSize: const Size(300, 100),
-            //   ),
-            //   child: const Text('즐겨찾기',
-            //     style: TextStyle(fontSize: 18),
-            //   ),
-            //   onPressed: (){
-            //     Navigator.push(
-            //         context,
-            //         MaterialPageRoute(builder: (context) => Favorite())
-            //     );
-            //   }
-            // ),
-            // const SizedBox(height: 80),
+            // 즐겨찾기 메뉴
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(0),
+                ),
+                fixedSize: const Size(300, 100),
+              ),
+              child: const Text('즐겨찾기',
+                style: TextStyle(fontSize: 18),
+              ),
+              onPressed: (){
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const Favorite())
+                );
+              }
+            ),
+            const SizedBox(height: 80),
 
-            // // 달력 메뉴
-            // ElevatedButton(
-            //   style: ElevatedButton.styleFrom(
-            //     shape: RoundedRectangleBorder(
-            //       borderRadius: BorderRadius.circular(0),
-            //     ),
-            //     fixedSize: const Size(300, 100),
-            //   ),
-            //   child: const Text('달력',
-            //     style: TextStyle(fontSize: 18),
-            //   ),
-            //   onPressed: (){
-            //     Navigator.push(
-            //       context,
-            //       MaterialPageRoute(builder: (context) => Calender(exercises: exercises,selectedDay:savedDay ),
-            //     ));
-            //   }
-            // ),
+            // 달력 메뉴
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(0),
+                ),
+                fixedSize: const Size(300, 100),
+              ),
+              child: const Text('달력',
+                style: TextStyle(fontSize: 18),
+              ),
+              onPressed: (){
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const Calender(),
+                ));
+              }
+            ),
           ],
         ),
       ),
@@ -501,14 +501,12 @@ class _CreateRoutineState extends State<CreateRoutine> {
                             ],
                           ),
                           onPressed: () {
+                            // healthRoutineMenu로 돌아감
                             Navigator.of(context).pop();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const HealthRoutineMenu())
-                            );
+                            Navigator.of(context).pop();
 
                             setState(() {
-                              final Exercise exercise = Exercise(
+                              final Exercise subExercise = Exercise(
                                 mainname: mainnameController.text,
                                 subExcerciseName: [],
                                 subExercises: {},
@@ -526,10 +524,10 @@ class _CreateRoutineState extends State<CreateRoutine> {
                                   reps.add(int.parse(repsController[i][j].text == '' ? '0' : repsController[i][j].text));
                                 }
 
-                                exercise.addSubExercise(name, sets, kg, reps);
+                                subExercise.addSubExercise(name, sets, kg, reps);
                               }
 
-                              exercises.add(exercise);
+                              exercises.add(subExercise);
 
                               // 제대로 들어갔는지 확인하기 위한 코드
                               print(exercises);
@@ -573,318 +571,348 @@ class _CreateRoutineState extends State<CreateRoutine> {
 }
 
 
-// // 즐겨찾기 페이지
-// class Favorite extends StatefulWidget {
+// 즐겨찾기 페이지
+class Favorite extends StatefulWidget {
 
-//   const Favorite({Key? key}) : super(key: key);
+  const Favorite({Key? key}) : super(key: key);
 
-//   @override
-//   State<Favorite> createState() => _FavoriteState();
-// }
+  @override
+  State<Favorite> createState() => _FavoriteState();
+}
 
-// class _FavoriteState extends State<Favorite> {
-//   @override
-//   Widget build(BuildContext context) {
-//     List<String> uniqueRoutineNames = exercises.map((exercise) => exercise.mainname).toList();
+class _FavoriteState extends State<Favorite> {
+  @override
+  Widget build(BuildContext context) {
+    List<String> uniqueRoutineNames = exercises.map((exercise) => exercise.mainname).toSet().toList();
 
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('My Exercises'),
-//       ),
-//       body: ListView.builder(
-//         itemCount: uniqueRoutineNames.length,
-//         itemBuilder: (context, index) {
-//           String routineName = uniqueRoutineNames[index];
-//           List<Exercise> routineExercises = exercises.where((exercise) => exercise.mainname == routineName).toList();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('My Exercises'),
+      ),
+      body: ListView.builder(
+        itemCount: uniqueRoutineNames.length,
+        itemBuilder: (context, index) {
+          String routineName = uniqueRoutineNames[index];
+          List<Exercise> routineExercises = exercises.where((exercise) => exercise.mainname == routineName).toList();
+          print(routineExercises);
 
-//           return RoutineWidget(
-//             routineName: routineName, 
-//             exercises: routineExercises,
-//             onDelete: () {
-//               setState(() {
-//                 exercises.removeWhere((exercise) => exercise.mainname == routineName);
-//               });
-//               ScaffoldMessenger.of(context).showSnackBar(
-//                 SnackBar(
-//                   content: Text('Routine "$routineName" deleted.'),
-//                 ),
-//               );
-//             },
-//           );
-//         },
-//       ),
-//       floatingActionButton: FloatingActionButton(
-//         onPressed: () {
-//           Navigator.pop(context);
-//         },
-//         tooltip: 'Home menu',
-//         child: const Icon(Icons.home),
-//       ),
-//     );
-//   }
-// }
+          return RoutineWidget(
+            routineName: routineName, 
+            exercises: routineExercises,
+            onDelete: () {
+              setState(() {
+                exercises.removeWhere((exercise) => exercise.mainname == routineName);
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Routine "$routineName" deleted.'),
+                ),
+              );
+            },
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pop(context);
+        },
+        tooltip: 'Home menu',
+        child: const Icon(Icons.home),
+      ),
+    );
+  }
+}
 
-// //즐겨찾기
-// class RoutineWidget extends StatefulWidget {
-//   final String routineName;
-//   final List<Exercise> exercises;
-//   final VoidCallback onDelete;
+//즐겨찾기
+class RoutineWidget extends StatefulWidget {
+  final String routineName;
+  final List<Exercise> exercises;
+  final VoidCallback onDelete;
 
-//   const RoutineWidget({Key? key, required this.routineName, required this.exercises, required this.onDelete}) : super(key: key);
+  const RoutineWidget({Key? key, required this.routineName, required this.exercises, required this.onDelete}) : super(key: key);
 
-//   @override
-//   State<RoutineWidget> createState() => _RoutineWidgetState();
-// }
+  @override
+  State<RoutineWidget> createState() => _RoutineWidgetState();
+}
 
-// class _RoutineWidgetState extends State<RoutineWidget> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Card(
-//       child: Column(
-//         children: [
-//           ElevatedButton(
-//             onPressed: () {
-//               showDialog(
-//                 context: context,
-//                 builder: (BuildContext context) {
-//                   return AlertDialog(
-//                     title: Text('Routine Name: ${widget.routineName}'),
-//                     content: Column(
-//                       crossAxisAlignment: CrossAxisAlignment.start,
-//                       children: [
-//                         for (Exercise exercise in widget.exercises)
-//                           Card(
-//                             child: Column(
-//                               children: [
-//                                 for (SubExercise subExercise in exercise.subExercisesList)
-//                                   ListTile(
-//                                     title: Text('Name: ${subExercise.name}, ', style: const TextStyle(fontSize: 16)),
-//                                     subtitle: Column(
-//                                       children: [
-//                                         for (int i = 0; i < subExercise.sets.length; i++)
-//                                           Text(
-//                                             'Sets: ${subExercise.sets[i]}, \n'
-//                                             'KG: ${subExercise.kg[i]}, \n'
-//                                             'Reps: ${subExercise.reps[i]}',
-//                                           ),
-//                                       ],
-//                                     ),
-//                                     trailing: ElevatedButton(
-//                                       onPressed: () {
-//                                         setState(() {
-//                                           _editExercise(subExercise);
-//                                         });
-//                                       },
-//                                       child: const Text('Edit'),
-//                                     ),
-//                                   ),
-//                               ],
-//                             ),
-//                           ),
-//                       ],
-//                     ),
-//                     actions: [
-//                       ElevatedButton(
-//                         onPressed: () {
-//                           widget.onDelete();
-//                           Navigator.pop(context);
-//                         },
-//                         child: const Text('Delete'),
-//                       ),
-//                       // // ElevatedButton(
-//                       //   onPressed: () {
-//                       //     Navigator.push(
-//                       //       context,
-//                       //       MaterialPageRoute(
-//                       //         builder: (context) => Calender(
-//                       //           exercises: exercises,
-//                       //           selectedDay: savedDay,
-//                       //         ),
-//                       //       ),
-//                       //     );
-//                       //     Navigator.pop(context);
-//                       //   },
-//                       //   child: const Text('save'),
-//                       // ),
-//                       TextButton(
-//                         onPressed: () {
-//                           Navigator.pop(context);
-//                         },
-//                         child: const Text(
-//                           'Close',
-//                           style: TextStyle(
-//                             color: Colors.blue, // 버튼 텍스트 색상
-//                             fontSize: 18.0,
-//                           ),
-//                         ),
-//                       ),
-//                     ],
-//                   );
-//                 },
-//               );
-//             },
-//             child: Text(widget.routineName),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
+class _RoutineWidgetState extends State<RoutineWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Column(
+        children: [
+          ElevatedButton(
+            onPressed: () {
+              _showExerciseOnPress(context);
+            },
+            child: Text(widget.routineName),
+          ),
+        ],
+      ),
+    );
+  }
 
-//   // 운동 편집 다이얼로그
-//   Future<void> _editExercise(SubExercise exercise) async {
-//     TextEditingController mainnameController = TextEditingController();
-//     List<TextEditingController> nameControllers = [];
-//     List<TextEditingController> setsControllers = [];
-//     List<TextEditingController> kgControllers = [];
-//     List<TextEditingController> repsControllers = [];
+  // 해당 subExercise를 누르면 보여주는 다이얼로그
+  Future<void> _showExerciseOnPress(context) async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Routine Name: ${widget.routineName}'),
+          content: SizedBox(
+            height: 300,
+            width: 450,
+            child: ListView(
+              children: [
+                for (Exercise subExercise in widget.exercises)
+                  Card(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (SubExercise subExercise in subExercise.subExercisesList)
+                          ListTile(
+                            title: Text('Name: ${subExercise.name}, ', style: const TextStyle(fontSize: 16)),
+                            subtitle: Column(
+                              children: [
+                                for (int i = 0; i < subExercise.sets.length; i++)
+                                  Column(
+                                    children: [
+                                      Text(
+                                        'Sets: ${subExercise.sets[i]}, \n'
+                                        'KG: ${subExercise.kg[i]}, \n'
+                                        'Reps: ${subExercise.reps[i]}',
+                                      ),
+                                      const SizedBox(height: 10),
+                                    ],
+                                  ),
+                              ],
+                            ),
+                            trailing: ElevatedButton(
+                              onPressed: () async {
+                                await _editSubExercise(subExercise);
+                                setState(() {
+                                  Navigator.pop(context);
+                                  _showExerciseOnPress(context);
+                                });
+                              },
+                              child: const Text('Edit'),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                widget.onDelete();
+                Navigator.pop(context);
+              },
+              child: const Text('Delete'),
+            ),
+            // 이게 뭔 기능하는지 모르겠다.
+            // ElevatedButton(
+            //   onPressed: () {
+            //     Navigator.push(
+            //       context,
+            //       MaterialPageRoute(
+            //         builder: (context) => Calender(
+            //           selectedDay: savedDay,
+            //         ),
+            //       ),
+            //     );
+            //     Navigator.pop(context);
+            //   },
+            //   child: const Text('save'),
+            // ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text(
+                'Close',
+                style: TextStyle(
+                  color: Colors.blue, // 버튼 텍스트 색상
+                  fontSize: 18.0,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
-//     // 기존 값으로 컨트롤러 초기화
-//     mainnameController.text = exercise.mainname;
-//     for (int totalLengthOfTextFieldRows = 0; totalLengthOfTextFieldRows < exercise.name.length; totalLengthOfTextFieldRows++) {
-//       nameControllers.add(TextEditingController(text: exercise.name[totalLengthOfTextFieldRows]));
-//       setsControllers.add(TextEditingController(text: exercise.sets[totalLengthOfTextFieldRows].toString()));
-//       kgControllers.add(TextEditingController(text: exercise.kg[totalLengthOfTextFieldRows].toString()));
-//       repsControllers.add(TextEditingController(text: exercise.reps[totalLengthOfTextFieldRows].toString()));
-//     }
+  // 운동 편집 다이얼로그
+  Future<void> _editSubExercise(SubExercise subExercise) async {
+    TextEditingController nameController = TextEditingController();
+    List<TextEditingController> setsControllers = [];
+    List<TextEditingController> kgControllers = [];
+    List<TextEditingController> repsControllers = [];
 
-//     // 다이얼로그 열기
-//     await showDialog(
-//       context: context,
-//       builder: (BuildContext context) {
-//         return AlertDialog(
-//           title: Text('Edit Exercise'),
-//           content: Column(
-//             children: [
-//               // mainname 편집은 필요에 따라 추가
-//               TextField(
-//                 controller: mainnameController,
-//                 decoration: InputDecoration(labelText: 'Main Name'),
-//               ),
-//               // 운동 정보들을 리스트로 편집
-//               for (int totalLengthOfTextFieldRows = 0; totalLengthOfTextFieldRows < nameControllers.length; totalLengthOfTextFieldRows++)
-//                 Column(
-//                   children: [
-//                     TextField(
-//                       controller: nameControllers[totalLengthOfTextFieldRows],
-//                       decoration: InputDecoration(labelText: 'Name'),
-//                     ),
-//                     TextField(
-//                       controller: setsControllers[totalLengthOfTextFieldRows],
-//                       decoration: InputDecoration(labelText: 'Sets'),
-//                     ),
-//                     TextField(
-//                       controller: kgControllers[totalLengthOfTextFieldRows],
-//                       decoration: InputDecoration(labelText: 'KG'),
-//                     ),
-//                     TextField(
-//                       controller: repsControllers[totalLengthOfTextFieldRows],
-//                       decoration: InputDecoration(labelText: 'Reps'),
-//                     ),
-//                   ],
-//                 ),
-//             ],
-//           ),
-//           actions: [
-//             TextButton(
-//               onPressed: () {
-//                 // 편집 완료 시 운동 정보 업데이트
-//                 setState(() {
-//                   exercise.mainname = mainnameController.text;
-//                   exercise.name.clear();
-//                   exercise.sets.clear();
-//                   exercise.kg.clear();
-//                   exercise.reps.clear();
+    // 기존 값으로 컨트롤러 초기화
+    nameController.text = subExercise.name;
+    for (int i = 0; i < subExercise.sets.length; i++) {
+      setsControllers.add(TextEditingController(text: subExercise.sets[i].toString()));
+      kgControllers.add(TextEditingController(text: subExercise.kg[i].toString()));
+      repsControllers.add(TextEditingController(text: subExercise.reps[i].toString()));
+    }
 
-//                   for (int totalLengthOfTextFieldRows = 0; totalLengthOfTextFieldRows < nameControllers.length; totalLengthOfTextFieldRows++) {
-//                     exercise.name.add(nameControllers[totalLengthOfTextFieldRows].text);
-//                     exercise.sets.add(int.parse(setsControllers[totalLengthOfTextFieldRows].text));
-//                     exercise.kg.add(double.parse(kgControllers[totalLengthOfTextFieldRows].text));
-//                     exercise.reps.add(int.parse(repsControllers[totalLengthOfTextFieldRows].text));
-//                   }
-//                 });
-//                 Navigator.pop(context);
-//               },
-//               child: Text('Save'),
-//             ),
-//             TextButton(
-//               onPressed: () {
-//                 Navigator.pop(context);
-//               },
-//               child: Text('Cancel'),
-//             ),
-//           ],
-//         );
-//       },
-//     );
-//   }
-// }
+    // 다이얼로그에는 편집할 수 있는 텍스트 필드들을 보여줌
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Edit Exercise'),
+          content: SizedBox(
+            height: 300,
+            width: 450,
+            child: ListView(
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Main Name'),
+                ),
+                // 운동 정보들을 리스트로 편집
+                for (int i = 0; i < setsControllers.length; i++)
+                  Card(
+                    child: Column(
+                      children: [
+                        TextField(
+                          controller: setsControllers[i],
+                          decoration: const InputDecoration(labelText: 'Sets'),
+                        ),
+                        TextField(
+                          controller: kgControllers[i],
+                          decoration: const InputDecoration(labelText: 'KG'),
+                        ),
+                        TextField(
+                          controller: repsControllers[i],
+                          decoration: const InputDecoration(labelText: 'Reps'),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                // 편집 완료 시 운동 정보 업데이트
+                setState(() {
+                  subExercise.name = nameController.text;
+                  subExercise.sets.clear();
+                  subExercise.kg.clear();
+                  subExercise.reps.clear();
 
-
-// // 달력 페이지
-// class Calender extends StatefulWidget{
-//   final List<Exercise> exercises;
-//   final DateTime selectedDay;
-
-//   const Calender({Key? key, required this.exercises, required this.selectedDay}) : super(key: key);
-
-
-//   @override
-//   State<Calender> createState() => _CalenderState();
-// }
-
-// class _CalenderState extends State<Calender> {
-//   DateTime focusedDay = DateTime.now();
-
-//   DateTime selectedDay = DateTime(
-//     DateTime.now().year,
-//     DateTime.now().month,
-//     DateTime.now().day,
-//   );
+                  for (int i = 0; i < setsControllers.length; i++) {
+                    subExercise.sets.add(int.parse(setsControllers[i].text));
+                    subExercise.kg.add(double.parse(kgControllers[i].text));
+                    subExercise.reps.add(int.parse(repsControllers[i].text));
+                  }
+                });
+                Navigator.pop(context);
+              },
+              child: const Text('Save'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
 
 
+// 달력 페이지
+class Calender extends StatefulWidget{
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(),
-//       body: Column(
-//         mainAxisAlignment: MainAxisAlignment.center,
-//         children: [
-//           TableCalendar(
-//             firstDay: DateTime.utc(2024, 1, 1),
-//             lastDay: DateTime.utc(2030, 1, 11),
-//             focusedDay: focusedDay,
-//             onDaySelected: (DateTime selectedDay, DateTime focusedDay) {
-//               // 선택된 날짜의 상태를 갱신합니다.
-//               setState(() {
-//                 this.selectedDay = selectedDay;
-//                 this.focusedDay = focusedDay;
-//               });
-//             },
-//             selectedDayPredicate: (DateTime day) {
-//               // selectedDay 와 동일한 날짜의 모양을 바꿔줍니다.
-//               return isSameDay(selectedDay, day);
-//             },
-//           ),
-//           Text('운동 정보 - ${widget.selectedDay.year}.${widget.selectedDay.month}.${widget.selectedDay.day}'),
-//           for (Exercise exercise in widget.exercises)
-//             if (isSameDay(widget.selectedDay, DateTime.parse(exercise.mainname)))
-//               for (int totalLengthOfTextFieldRows = 0; totalLengthOfTextFieldRows < exercise.name.length; totalLengthOfTextFieldRows++)
-//                 ListTile(
-//                   title: Text(
-//                     'Name: ${exercise.name[totalLengthOfTextFieldRows]}, Sets: ${exercise.sets[totalLengthOfTextFieldRows]}, KG: ${exercise.kg[totalLengthOfTextFieldRows]}, Reps: ${exercise.reps[totalLengthOfTextFieldRows]}',
-//                     style: TextStyle(fontSize: 16),
-//                   ),
-//                 ),
-//         ],
-//       ),
-//       floatingActionButton: FloatingActionButton(
-//         onPressed: () {
-//           Navigator.pop(context);
-//         },
-//         tooltip: 'Home menu',
-//         child: const Icon(Icons.home),
-//       ),
-//     );
-//   }
-// }
+  const Calender({Key? key}) : super(key: key);
+
+
+  @override
+  State<Calender> createState() => _CalenderState();
+}
+
+class _CalenderState extends State<Calender> {
+  DateTime focusedDay = DateTime.now();
+
+  DateTime selectedDay = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+    DateTime.now().day,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: ListView(
+        children: [
+          TableCalendar(
+            firstDay: DateTime.utc(2024, 1, 1),
+            lastDay: DateTime.utc(2030, 1, 11),
+            focusedDay: focusedDay,
+            onDaySelected: (DateTime selectedDay, DateTime focusedDay) {
+              // 선택된 날짜의 상태를 갱신합니다.
+              setState(() {
+                this.selectedDay = selectedDay;
+                this.focusedDay = focusedDay;
+              });
+            },
+            selectedDayPredicate: (DateTime day) => isSameDay(selectedDay, day),
+          ),
+          Text('운동 정보 - ${selectedDay.year}.${selectedDay.month}.${selectedDay.day}'),
+          for (Exercise exercise in exercises)
+            if (isSameDay(selectedDay, exercise.date))
+              Card(
+                child: Column(
+                  children: [
+                    ListTile(
+                      title: Text('루틴 이름: ${exercise.mainname}'),
+                    ),
+                    for (SubExercise subExercise in exercise.subExercisesList)
+                      ListTile(
+                        title: Text(
+                          'Name: ${subExercise.name}',
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        subtitle: Column(
+                          children: [
+                            for (int i = 0; i < subExercise.sets.length; i++)
+                              Column(
+                                children: [
+                                  Text(
+                                    'Sets: ${subExercise.sets[i]}, \n'
+                                    'KG: ${subExercise.kg[i]}, \n'
+                                    'Reps: ${subExercise.reps[i]}',
+                                  ),
+                                  const SizedBox(height: 10),
+                                ],
+                              ),
+                          ],
+                        )
+                      ),
+                  ]
+                ),
+              )
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pop(context);
+        },
+        tooltip: 'Home menu',
+        child: const Icon(Icons.home),
+      ),
+    );
+  }
+}
