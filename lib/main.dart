@@ -7,8 +7,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-
-
 import 'login_page.dart';
 import 'health_main.dart';
 
@@ -34,11 +32,12 @@ class _MyAppState extends State<MyApp>{
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'Flutter Demo',
+      title: 'Health app',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(), //import 해준다.
+      home: const MyHomePage(),
+      debugShowCheckedModeBanner: false,//import 해준다.
     );
   }
 

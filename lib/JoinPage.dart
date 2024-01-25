@@ -98,7 +98,7 @@ class _JoinPageState extends State<JoinPage> {
       padding: const EdgeInsets.only(top: 8.0), // 8단위 배수가 보기 좋음
       child: ElevatedButton(
           onPressed: () => _join(),
-          child: const Text("회원 가입")
+          child: const Text('회원 가입')
       ),
     );
   }
@@ -161,17 +161,19 @@ class _JoinPageState extends State<JoinPage> {
             password: _passwordController.text
         )).user;
 
-        CollectionReference userCollection = FirebaseFirestore.instance.collection('user');
+        //debugPrint(user.toString());
+
+        CollectionReference userCollection = FirebaseFirestore.instance.collection('/user');
         userCollection.doc(user!.uid).set({
           'name': _nameController.text,
         }).then((value) async {
           await FirebaseAuth.instance.signOut();
-          print("회원가입 성공! LoginPage로 이동합니다.");
           Get.offAll(()=>const LoginPage());
         }).catchError((e) async {
 
 
           await FirebaseAuth.instance.currentUser!.delete();
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(e),
@@ -180,14 +182,15 @@ class _JoinPageState extends State<JoinPage> {
           );
         });
       } on FirebaseAuthException catch (e) {
+        print("Firebase Authentication 에러: ${e.message}");
         String message = '';
-
         if (e.code == 'weak-password') {
           message = '비밀번호는 6자리 이상으로 설정해주세요.';
         } else if (e.code == 'email-already-in-use') {
           message = '이미 사용중인 이메일입니다.';
         }
-        ScaffoldMessenger.of(context).showSnackBar(
+
+       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(message),
             backgroundColor: Colors.deepOrange,

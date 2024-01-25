@@ -120,6 +120,7 @@ class _UserPageState extends State<UserPage> {
     super.dispose();
   }
 
+
   _getUser() {
     FirebaseFirestore.instance.collection('user')
         .doc(user!.uid)
@@ -132,6 +133,8 @@ class _UserPageState extends State<UserPage> {
           setState(() {
             _name = name;
             _email = email!;
+            debugPrint(_name);
+            debugPrint(_email);
           });
         } on StateError catch(e){
 
