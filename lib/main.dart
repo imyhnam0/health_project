@@ -1,105 +1,59 @@
-import 'package:flutter_project/health_routine.dart';
-import 'package:flutter_project/diet.dart';
-import 'package:flutter_project/friends.dart';
-import 'package:flutter/material.dart';
+import 'dart:async';
 
-void main() {
+import 'package:flutter_project/my_home_page.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import 'firebase_options.dart';
+
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // 확실하게 바인딩 되기 전에는 대기.
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp>{
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Health',
+    return GetMaterialApp(
+      title: 'Health app',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+        primarySwatch: Colors.blue,
       ),
       home: const MyHomePage(),
+      debugShowCheckedModeBanner: false,//import 해준다.
     );
   }
-}
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key});
 
-  final title = 'Health routine&food';
+  //@override 코드는 Stateful 상태에서만 동작.
+  @override
+  void initState() {
+    //해당 클래스가 호출되었을떄
+    super.initState();
+    // double width = MediaQuery.of(context).size.width;
+    // print('width: $width');
+    //_initializeFlutterFire();
+
+  }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
+  dispose() async {
+    // timer를 먼저 종료시키고 db를 종료.
 
-            // 헬스 루틴 메뉴
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(0),
-                ),
-                fixedSize: const Size(300, 100),
-              ),
-              child: const Text('헬스 루틴',
-                style: TextStyle(fontSize: 18),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HealthRoutineMenu()),
-                );
-              },
-            ),
-            const SizedBox(height: 80),
-
-            //식단 메뉴
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(0),
-                ),
-                fixedSize: const Size(300, 100),
-              ),
-              child: const Text('식단',
-                style: TextStyle(fontSize: 18),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const DietMenu()),
-                );
-              },
-            ),
-            const SizedBox(height: 80),
-
-            //친구 추가 메뉴
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(0),
-                ),
-                fixedSize: const Size(300, 100),
-              ),
-              child: const Text('친구 추가',
-                style: TextStyle(fontSize: 18),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const FriendsMenu()),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+    // 해당 클래스가 사라질떄
+    super.dispose();
   }
+
 }

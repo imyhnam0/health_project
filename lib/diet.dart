@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_project/today.dart';
 import 'package:table_calendar/table_calendar.dart';
+
+import 'diet_define.dart';
 
 class DietMenu extends StatefulWidget{
   const DietMenu({super.key});
@@ -12,106 +13,100 @@ class DietMenu extends StatefulWidget{
 
 class _DietMenuState extends State<DietMenu> {
   var todayDiet = OneDayFoods();
-  final bookmarks = BookmarkedFoods();
-  final mealHistory = MealCollection();
 
   @override
   void initState() {
     super.initState();
 
+    if (mealHistory.get(DateTime.now()) == null) {
+      mealHistory.add(todayDiet);
+    } else {
+      todayDiet = mealHistory.get(DateTime.now())!;
+    }
     // hard coding for test
-    todayDiet.addFood(Food('first', 100, 4));
-    todayDiet.addFood(Food('second', 130, 20));
-    todayDiet.addFood(Food('third', 130, 20));
-    bookmarks.addFood(Food('first', 100, 4));
-    bookmarks.addFood(Food('second', 130, 20));
-    mealHistory.add(OneDayFoods(name: 'first', foods: [Food('first', 100, 4)], date: DateTime(2024, 1, 5)));
-    mealHistory.add(OneDayFoods(name: 'second', foods: [Food('second', 130, 20)], date: DateTime(2024, 1, 4)));
-    
     mealHistory.add(todayDiet);
   }
 
   @override
   Widget build(BuildContext context) {
     return Builder(
-      builder: (context) {
-        return Scaffold(
-          appBar: AppBar(
-            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-            title: const Text('diet'),
-          ),
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                // 오늘의 식단
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(0),
-                    ),
-                    fixedSize: const Size(300, 100),
-                  ),
-                  child: const Text('오늘의 식단',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => TodayDietWidget(todayDiet: todayDiet, bookmarks: bookmarks,)),
-                    );
-                  },
-                ),
-                const SizedBox(height: 80),
-                // 즐겨찾기
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(0),
-                    ),
-                    fixedSize: const Size(300, 100),
-                  ),
-                  child: const Text('즐겨찾기',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => BookmarkWidget(todayDiet: todayDiet, bookmarks: bookmarks,)),
-                    );
-                  },
-                ),
-                const SizedBox(height: 80),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(0),
-                    ),
-                    fixedSize: const Size(300, 100),
-                  ),
-                  child: const Text('달력',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => CalendarWidget(mealHistory: mealHistory, todayDiet: todayDiet,)),
-                    );
-                  },
-                )
-              ],
+        builder: (context) {
+          return Scaffold(
+            appBar: AppBar(
+              backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+              title: const Text('diet'),
             ),
-          ),
-        );
-      }
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  // 오늘의 식단
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(0),
+                      ),
+                      fixedSize: const Size(300, 100),
+                    ),
+                    child: const Text('오늘의 식단',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => TodayDietWidget(todayDiet: todayDiet)),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 80),
+                  // 즐겨찾기
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(0),
+                      ),
+                      fixedSize: const Size(300, 100),
+                    ),
+                    child: const Text('즐겨찾기',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => BookmarkWidget(todayDiet: todayDiet)),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 80),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(0),
+                      ),
+                      fixedSize: const Size(300, 100),
+                    ),
+                    child: const Text('달력',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => CalendarWidget(todayDiet: todayDiet,)),
+                      );
+                    },
+                  )
+                ],
+              ),
+            ),
+          );
+        }
     );
   }
 }
 
 class TodayDietWidget extends StatefulWidget{
-  const TodayDietWidget({super.key, required this.todayDiet, required this.bookmarks});
+  const TodayDietWidget({super.key, required this.todayDiet});
   final OneDayFoods todayDiet;
-  final BookmarkedFoods bookmarks;
 
   @override
   State<TodayDietWidget> createState() => _TodayDietWidgetState();
@@ -229,47 +224,48 @@ class _TodayDietWidgetState extends State<TodayDietWidget> {
                   child: Column(
                     children: [
                       IconButton(
-                        style: IconButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(0),
+                          style: IconButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(0),
+                            ),
                           ),
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _nameCtrl[index].dispose();
-                            _gramCtrl[index].dispose();
-                            _kcalCtrl[index].dispose();
-                            _nameCtrl.removeAt(index);
-                            _gramCtrl.removeAt(index);
-                            _kcalCtrl.removeAt(index);
-                            textFieldRows.removeAt(index);
-                          });
-                        },
-                        icon: const Icon(Icons.delete)
+                          onPressed: () {
+                            setState(() {
+                              _nameCtrl[index].dispose();
+                              _gramCtrl[index].dispose();
+                              _kcalCtrl[index].dispose();
+                              _nameCtrl.removeAt(index);
+                              _gramCtrl.removeAt(index);
+                              _kcalCtrl.removeAt(index);
+                              textFieldRows.removeAt(index);
+                            });
+                          },
+                          icon: const Icon(Icons.delete)
                       ),
                       IconButton(
-                        style: IconButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(0),
+                          style: IconButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(0),
+                            ),
                           ),
-                        ),
-                        onPressed: () {
-                          if (_nameCtrl[index].text == '') {
-                            showDialog(
-                              context: context, 
-                              builder: (context) => const AlertDialog(content: Text('이름을 적어주세요'),)
-                            );
-                            return;
-                          }
-                          setState(() {
-                            widget.bookmarks.addFood(
-                              Food(_nameCtrl[index].text, 
-                              int.parse(_gramCtrl[index].text == '' ? '0' : _gramCtrl[index].text), 
-                              int.parse(_kcalCtrl[index].text == '' ? '0' : _kcalCtrl[index].text)
-                            ));
-                          });
-                        },
-                        icon: const Icon(Icons.bookmark)
+                          onPressed: () {
+                            if (_nameCtrl[index].text == '') {
+                              showDialog(
+                                  context: context,
+                                  builder: (context) => const AlertDialog(content: Text('이름을 적어주세요'),)
+                              );
+                              return;
+                            }
+                            setState(() {
+                              Food food = Food(_nameCtrl[index].text,
+                                              int.parse(_gramCtrl[index].text == '' ? '0' : _gramCtrl[index].text),
+                                              int.parse(_kcalCtrl[index].text == '' ? '0' : _kcalCtrl[index].text)
+                                          );
+                              bookmarks.addFoodWithNameDiff(food, context);
+                              updateBookmarksToFirestore(food);
+                            });
+                          },
+                          icon: const Icon(Icons.bookmark)
                       ),
                       const Spacer(),
                     ],
@@ -357,10 +353,11 @@ class _TodayDietWidgetState extends State<TodayDietWidget> {
                           continue;
                         }
                         widget.todayDiet.addFood(
-                          Food(_nameCtrl[i].text, 
-                          int.parse(_gramCtrl[i].text == '' ? '0' : _gramCtrl[i].text), 
-                          int.parse(_kcalCtrl[i].text == '' ? '0' : _kcalCtrl[i].text)
-                        ));
+                          Food(_nameCtrl[i].text,
+                              int.parse(_gramCtrl[i].text == '' ? '0' : _gramCtrl[i].text),
+                              int.parse(_kcalCtrl[i].text == '' ? '0' : _kcalCtrl[i].text)
+                          ));
+                        updateTodayDietToFirestore(widget.todayDiet);
                       }
                     });
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -372,12 +369,12 @@ class _TodayDietWidgetState extends State<TodayDietWidget> {
             ),
           ),
           const Center(
-            child: Column(
-              children: [
-                Text('note: 이름이 빈칸으로 된 식단은 저장되지 않습니다.'),
-                Text('gram, Kcal를 비워두면 0으로 저장됩니다.'),
-              ],
-            )
+              child: Column(
+                children: [
+                  Text('note: 이름이 빈칸으로 된 식단은 저장되지 않습니다.'),
+                  Text('gram, Kcal를 비워두면 0으로 저장됩니다.'),
+                ],
+              )
           ),
         ],
       ),
@@ -385,8 +382,8 @@ class _TodayDietWidgetState extends State<TodayDietWidget> {
         onPressed: () {
           Navigator.pop(context);
           Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => BookmarkWidget(todayDiet: widget.todayDiet, bookmarks: widget.bookmarks,))
+              context,
+              MaterialPageRoute(builder: (context) => BookmarkWidget(todayDiet: widget.todayDiet))
           );
         },
         tooltip: '즐겨찾기',
@@ -397,9 +394,8 @@ class _TodayDietWidgetState extends State<TodayDietWidget> {
 }
 
 class BookmarkWidget extends StatefulWidget{
-  final BookmarkedFoods bookmarks;
   final OneDayFoods todayDiet;
-  const BookmarkWidget({super.key, required this.todayDiet, required this.bookmarks});
+  const BookmarkWidget({super.key, required this.todayDiet});
 
   @override
   State<BookmarkWidget> createState() => _BookmarksState();
@@ -412,7 +408,7 @@ class _BookmarksState extends State<BookmarkWidget> {
   @override
   void initState() {
     super.initState();
-    _isSelected = List.filled(widget.bookmarks.foods.length, false);
+    _isSelected = List.filled(bookmarks.foods.length, false);
   }
 
   @override
@@ -422,125 +418,127 @@ class _BookmarksState extends State<BookmarkWidget> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('즐겨찾기'),
         leading: _isEditing
-                ? IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      setState(() {
-                        _isEditing = false;
-                        _isSelected = List.filled(widget.bookmarks.foods.length, false);
-                      });
-                    },
-                  )
-                : BackButton(
-                  onPressed: () {
-                    setState(() {
-                      Navigator.pop(context);
-                    });
-                  },
-                ),
+            ? IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () {
+            setState(() {
+              _isEditing = false;
+              _isSelected = List.filled(bookmarks.foods.length, false);
+            });
+          },
+        )
+            : BackButton(
+          onPressed: () {
+            setState(() {
+              Navigator.pop(context);
+            });
+          },
+        ),
         actions: _isEditing ? [
           IconButton(
             icon: const Icon(Icons.delete),
             onPressed: () {
               setState(() {
-                for (var index = widget.bookmarks.foods.length-1; index >= 0; index--) {
+                for (var index = bookmarks.foods.length-1; index >= 0; index--) {
                   if (_isSelected[index]) {
-                    widget.bookmarks.delFoodByIndex(index);
+                    deleteBookmarksToFirestore(bookmarks.foods[index].name);
+                    bookmarks.delFoodByIndex(index);
                   }
                 }
                 _isEditing = false;
-                _isSelected = List.filled(widget.bookmarks.foods.length, false);
+                _isSelected = List.filled(bookmarks.foods.length, false);
               });
             },
           ),
         ] : [],
       ),
-    body: ListView(children: 
-      [_isEditing 
-            ? DataTable(
-              columns: const [
-                DataColumn(label: Text('음식 이름')),
-                DataColumn(label: Text('Kcal')),
-                DataColumn(label: Text('Grams')),
-              ],
-              rows: [
-                for (var index = 0; index < widget.bookmarks.foods.length; index++)
-                  DataRow(
-                    selected: _isSelected[index],
-                    onSelectChanged: (bool? isSelected) {
-                      setState(() {
-                        _isSelected[index] = isSelected!;
-                      });
-                    },
-                    cells: [
-                      DataCell(
-                        Text(widget.bookmarks.foods[index].name),
-                      ),
-                      DataCell(
-                        Text(widget.bookmarks.foods[index].kcal.toString()),
-                      ),
-                      DataCell(
-                        Text(widget.bookmarks.foods[index].grams.toString()),
-                      ),
-                    ],
-                  ),
-              ],
-            )
-            : DataTable(
-              columns: const [
-                DataColumn(label: Text('음식 이름')),
-                DataColumn(label: Text('Kcal')),
-                DataColumn(label: Text('Grams')),
-                DataColumn(label: Text('오늘의 식단에 추가')),
-              ],
-              rows: [
-                for (var index = 0; index < widget.bookmarks.foods.length; index++)
-                  DataRow(
-                    onLongPress: () {
-                      setState(() {
-                        _isEditing = true;
-                        _isSelected[index] = true;
-                      });
-                    },
-                    cells: [
-                      DataCell(
-                        Text(widget.bookmarks.foods[index].name),
-                      ),
-                      DataCell(
-                        Text(widget.bookmarks.foods[index].kcal.toString()),
-                      ),
-                      DataCell(
-                        Text(widget.bookmarks.foods[index].grams.toString()),
-                      ),
-                      DataCell(
-                        IconButton(
-                          style: IconButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(0),
-                            ),
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              widget.todayDiet.addFood(widget.bookmarks.foods[index]);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('추가되었습니다.')),
-                              );
-                            });
-                          },
-                          icon: const Icon(Icons.add),
-                        ),
-                      )
-                    ],
-                  ),
+      body: ListView(children:
+      [_isEditing
+          ? DataTable(
+        columns: const [
+          DataColumn(label: Text('음식 이름')),
+          DataColumn(label: Text('Grams')),
+          DataColumn(label: Text('Kcal')),
+        ],
+        rows: [
+          for (var index = 0; index < bookmarks.foods.length; index++)
+            DataRow(
+              selected: _isSelected[index],
+              onSelectChanged: (bool? isSelected) {
+                setState(() {
+                  _isSelected[index] = isSelected!;
+                });
+              },
+              cells: [
+                DataCell(
+                  Text(bookmarks.foods[index].name),
+                ),
+                DataCell(
+                  Text(bookmarks.foods[index].grams.toString()),
+                ),
+                DataCell(
+                  Text(bookmarks.foods[index].kcal.toString()),
+                ),
               ],
             ),
-        ]),
+        ],
+      )
+          : DataTable(
+        columns: const [
+          DataColumn(label: Text('음식 이름')),
+          DataColumn(label: Text('Grams')),
+          DataColumn(label: Text('Kcal')),
+          DataColumn(label: Text('오늘의 식단에 추가')),
+        ],
+        rows: [
+          for (var index = 0; index < bookmarks.foods.length; index++)
+            DataRow(
+              onLongPress: () {
+                setState(() {
+                  _isEditing = true;
+                  _isSelected[index] = true;
+                });
+              },
+              cells: [
+                DataCell(
+                  Text(bookmarks.foods[index].name),
+                ),
+                DataCell(
+                  Text(bookmarks.foods[index].grams.toString()),
+                ),
+                DataCell(
+                  Text(bookmarks.foods[index].kcal.toString()),
+                ),
+                DataCell(
+                  IconButton(
+                    style: IconButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(0),
+                      ),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        widget.todayDiet.addFood(bookmarks.foods[index]);
+                        updateTodayDietToFirestore(widget.todayDiet);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('추가되었습니다.')),
+                        );
+                      });
+                    },
+                    icon: const Icon(Icons.add),
+                  ),
+                )
+              ],
+            ),
+        ],
+      ),
+      ]),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pop(context);
           Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => TodayDietWidget(todayDiet: widget.todayDiet, bookmarks: widget.bookmarks,))
+              context,
+              MaterialPageRoute(builder: (context) => TodayDietWidget(todayDiet: widget.todayDiet))
           );
         },
         tooltip: '오늘의 식단',
@@ -551,9 +549,8 @@ class _BookmarksState extends State<BookmarkWidget> {
 }
 
 class CalendarWidget extends StatefulWidget{
-  final MealCollection mealHistory;
   final OneDayFoods todayDiet;
-  const CalendarWidget({super.key, required this.mealHistory, required this.todayDiet});
+  const CalendarWidget({super.key, required this.todayDiet});
 
   @override
   State<CalendarWidget> createState() => _CalendarWidgetState();
@@ -571,7 +568,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
 
   @override
   Widget build(BuildContext context) {
-    OneDayFoods? mealOnSelectedDay = widget.mealHistory.get(_selectedDay);
+    OneDayFoods? mealOnSelectedDay = mealHistory.get(_selectedDay);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -580,54 +577,55 @@ class _CalendarWidgetState extends State<CalendarWidget> {
       body: ListView(
         children: [
           TableCalendar(
-            firstDay: DateTime.utc(2023, 1, 1),
-            lastDay: DateTime.now(),
-            focusedDay: _focusedDay,
-            onDaySelected: (selectedDay, focusedDay) {
-              setState(() {
-                _selectedDay = selectedDay;
-                _focusedDay = focusedDay;
-              });
-            },
-            selectedDayPredicate: (day) {
-              return isSameDay(_selectedDay, day);
-            },
-            eventLoader: (day) => widget.mealHistory.getAll(day)
+              firstDay: DateTime.utc(2023, 1, 1),
+              lastDay: DateTime.now(),
+              focusedDay: _focusedDay,
+              onDaySelected: (selectedDay, focusedDay) {
+                setState(() {
+                  _selectedDay = selectedDay;
+                  _focusedDay = focusedDay;
+                });
+              },
+              selectedDayPredicate: (day) {
+                return isSameDay(_selectedDay, day);
+              },
+              eventLoader: (day) => mealHistory.getAll(day)
           ),
           const Divider(),
           ListTile(
-            title: Row(
+              title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('선택된 날짜: ${_selectedDay.toString().substring(0, 10)}'),
-                  mealOnSelectedDay != null 
-                  ? Text('${mealOnSelectedDay.grams.toString()}g, ${mealOnSelectedDay.kcal.toString()}kcal') 
-                  : const SizedBox.shrink(),
+                  mealOnSelectedDay != null
+                      ? Text('${mealOnSelectedDay.grams.toString()}g, ${mealOnSelectedDay.kcal.toString()}kcal')
+                      : const SizedBox.shrink(),
                 ],
               )
-            ),
+          ),
           mealOnSelectedDay != null ?
-            Wrap(
-              alignment: WrapAlignment.start,
-              children: [
-                for (var meal in mealOnSelectedDay.foods)
-                  SizedBox(
-                    width: 200,
-                    child: ListTile(
-                      leading: IconButton(icon: const Icon(Icons.add), onPressed: () {
-                        setState(() {
-                          widget.todayDiet.addFood(meal);
-                        });
+          Wrap(
+            alignment: WrapAlignment.start,
+            children: [
+              for (var meal in mealOnSelectedDay.foods)
+                SizedBox(
+                  width: 200,
+                  child: ListTile(
+                    leading: IconButton(icon: const Icon(Icons.add), onPressed: () {
+                      setState(() {
+                        widget.todayDiet.addFood(meal);
+                        updateTodayDietToFirestore(widget.todayDiet);
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('오늘의 메뉴에 추가되었습니다.')),
                         );
-                      }),
-                      title: Text(meal.name),
-                      subtitle: Text('${meal.grams.toString()}g, ${meal.kcal.toString()}kcal'),
-                    ),
+                      });
+                    }),
+                    title: Text(meal.name),
+                    subtitle: Text('${meal.grams.toString()}g, ${meal.kcal.toString()}kcal'),
                   ),
-              ],
-            ) : const SizedBox.shrink()
+                ),
+            ],
+          ) : const SizedBox.shrink()
         ],
       ),
     );
